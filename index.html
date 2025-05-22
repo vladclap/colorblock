@@ -1,0 +1,166 @@
+<!DOCTYPE html>
+<html lang="uk">
+  <head>
+    <meta charset="UTF-8" />
+    <title>Color Drop</title>
+    <style>
+      body {
+        margin: 0;
+        overflow: hidden;
+        background: #111;
+        font-family: sans-serif;
+      }
+
+      #game {
+        width: 300px;
+        height: 500px;
+        background: #222;
+        margin: 30px auto;
+        position: relative;
+        border: 2px solid #444;
+      }
+
+      .block {
+        position: absolute;
+        top: 0;
+        left: 0;
+        border-radius: 4px;
+      }
+
+      .zone {
+        width: 100px;
+        height: 40px;
+        position: absolute;
+        bottom: 0;
+      }
+
+      .red {
+        background: red;
+        left: 0;
+      }
+      .yellow {
+        background: yellow;
+        left: 100px;
+      }
+      .blue {
+        background: blue;
+        left: 200px;
+      }
+
+      .info {
+        text-align: center;
+        color: white;
+        font-size: 20px;
+      }
+    </style>
+  </head>
+  <body>
+    <div id="game">
+      <div class="zone red"></div>
+      <div class="zone yellow"></div>
+      <div class="zone blue"></div>
+    </div>
+    <div class="info" id="score">Очки: 0 | Життя: 3</div>
+
+    <script>
+      const game = document.getElementById("game");
+      const scoreEl = document.getElementById("score");
+
+      const colors = ["red", "yellow", "blue"];
+      const shapes = [
+        { width: 90, height: 30 }, // горизонтальний прямокутник
+        { width: 60, height: 60 }, // квадрат
+        { width: 30, height: 90 }, // вертикальний блок
+      ];
+
+      let block = null;
+      let blockX = 0;
+      let blockY = 0;
+      let blockHeight = 30;
+      let fallSpeed = 2;
+      let fastFall = false;
+      let score = 0;
+      let lives = 3;
+      let interval;
+
+      function spawnBlock() {
+        const color = colors[Math.floor(Math.random() * colors.length)];
+        const shape = shapes[Math.floor(Math.random() * shapes.length)];
+
+        block = document.createElement("div");
+        block.classList.add("block", color);
+        block.style.width = shape.width + "px";
+        block.style.height = shape.height + "px";
+
+        blockHeight = shape.height;
+
+        // Випадкова колонка (0, 1, 2)
+        const column = Math.floor(Math.random() * 3);
+        blockX = column * 100 + (100 - shape.width) / 2;
+        blockY = 0;
+
+        block.style.left = blockX + "px";
+        block.style.top = blockY + "px";
+        game.appendChild(block);
+      }
+
+      function updateBlock() {
+        const speed = fastFall ? fallSpeed * 5 : fallSpeed;
+        blockY += speed;
+        block.style.top = blockY + "px";
+
+        if (blockY + blockHeight >= 460) {
+          const zoneX = Math.round(blockX / 100) * 100;
+          const correctZone = colors.indexOf(block.classList[1]) * 100;
+
+          if (zoneX === correctZone) {
+            score++;
+          } else {
+            lives--;
+          }
+
+          game.removeChild(block);
+          block = null;
+          updateScore();
+
+          if (lives <= 0) {
+            clearInterval(interval);
+            alert("💀 Гру завершено!\nОчки: " + score);
+          } else {
+            spawnBlock();
+          }
+        }
+      }
+
+      function updateScore() {
+        scoreEl.textContent = `Очки: ${score} | Життя: ${lives}`;
+      }
+
+      function moveBlock(direction) {
+        if (!block) return;
+        const blockWidth = parseInt(block.style.width);
+        if (direction === "left" && blockX >= 100) {
+          blockX -= 100;
+        } else if (direction === "right" && blockX + blockWidth <= 200) {
+          blockX += 100;
+        }
+        block.style.left = blockX + "px";
+      }
+
+      document.addEventListener("keydown", (e) => {
+        if (e.key === "ArrowLeft") moveBlock("left");
+        if (e.key === "ArrowRight") moveBlock("right");
+        if (e.key === "ArrowDown") fastFall = true;
+      });
+
+      document.addEventListener("keyup", (e) => {
+        if (e.key === "ArrowDown") fastFall = false;
+      });
+
+      spawnBlock();
+      interval = setInterval(() => {
+        if (block) updateBlock();
+      }, 30);
+    </script>
+  </body>
+</html>
