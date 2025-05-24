@@ -93,6 +93,10 @@ function updateScore() {
 
 function endGame() {
   clearInterval(interval);
+  paused = false;
+  pauseOverlay.style.display = "none";
+  pauseBtn.textContent = "Пауза";
+
   alert("🎮 Гру завершено!\nОчки: " + score);
   gameScreen.style.display = "none";
   mainMenu.style.display = "flex";
@@ -154,3 +158,30 @@ spawnBlock();
 interval = setInterval(() => {
   if (block) updateBlock();
 }, 30);
+const pauseBtn = document.getElementById("pauseBtn");
+const pauseOverlay = document.getElementById("pauseOverlay");
+
+let paused = false;
+
+pauseBtn.addEventListener("click", () => {
+  paused = !paused;
+  if (paused) {
+    pauseGame();
+  } else {
+    resumeGame();
+  }
+});
+
+function pauseGame() {
+  clearInterval(interval);
+  pauseOverlay.style.display = "flex";
+  pauseBtn.textContent = "Продовжити";
+}
+
+function resumeGame() {
+  pauseOverlay.style.display = "none";
+  pauseBtn.textContent = "Пауза";
+  interval = setInterval(() => {
+    if (block) updateBlock();
+  }, 30);
+}
