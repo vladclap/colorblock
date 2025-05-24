@@ -2,25 +2,11 @@ const mainMenu = document.getElementById("main-menu");
 const gameScreen = document.getElementById("game-screen");
 const startBtn = document.getElementById("startBtn");
 
-startBtn.addEventListener("click", () => {
-  mainMenu.style.display = "none";
-  gameScreen.style.display = "block";
-  startGame();
-});
-
-function startGame() {
-  score = 0;
-  lives = 3;
-  updateScore();
-  spawnBlock();
-  interval = setInterval(() => {
-    if (block) updateBlock();
-  }, 30);
-}
-
 const game = document.getElementById("game");
 const scoreEl = document.getElementById("score");
 const restartBtn = document.getElementById("restartBtn");
+const pauseBtn = document.getElementById("pauseBtn");
+const pauseOverlay = document.getElementById("pauseOverlay");
 
 const colors = ["red", "yellow", "blue"];
 const shapes = [
@@ -38,6 +24,49 @@ let fastFall = false;
 let score = 0;
 let lives = 3;
 let interval;
+let paused = false;
+
+startBtn.addEventListener("click", () => {
+  mainMenu.style.display = "none";
+  gameScreen.style.display = "block";
+  startGame();
+});
+
+restartBtn.addEventListener("click", () => {
+  clearInterval(interval);
+  startGame();
+});
+
+pauseBtn.addEventListener("click", () => {
+  paused = !paused;
+  if (paused) {
+    pauseGame();
+  } else {
+    resumeGame();
+  }
+});
+
+function startGame() {
+  score = 0;
+  lives = 3;
+  paused = false;
+  updateScore();
+
+  // Очистити старий блок, якщо є
+  if (block) {
+    game.removeChild(block);
+    block = null;
+  }
+
+  pauseOverlay.style.display = "none";
+  pauseBtn.textContent = "Пауза";
+
+  spawnBlock();
+
+  interval = setInterval(() => {
+    if (!paused && block) updateBlock();
+  }, 30);
+}
 
 function spawnBlock() {
   const color = colors[Math.floor(Math.random() * colors.length)];
@@ -114,18 +143,23 @@ function moveBlock(direction) {
   block.style.left = blockX + "px";
 }
 
-function restartGame() {
-  score = 0;
-  lives = 3;
-  restartBtn.style.display = "none";
-  updateScore();
-  spawnBlock();
+function pauseGame() {
+  clearInterval(interval);
+  pauseOverlay.style.display = "flex";
+  pauseBtn.textContent = "Продовжити";
+}
+
+function resumeGame() {
+  pauseOverlay.style.display = "none";
+  pauseBtn.textContent = "Пауза";
   interval = setInterval(() => {
-    if (block) updateBlock();
+    if (!paused && block) updateBlock();
   }, 30);
 }
 
+// Керування клавішами
 document.addEventListener("keydown", (e) => {
+  if (paused) return;
   if (e.key === "ArrowLeft") moveBlock("left");
   if (e.key === "ArrowRight") moveBlock("right");
   if (e.key === "ArrowDown") fastFall = true;
@@ -135,7 +169,7 @@ document.addEventListener("keyup", (e) => {
   if (e.key === "ArrowDown") fastFall = false;
 });
 
-// Touch events
+// Сенсорне керування
 let touchStartX = 0;
 let touchStartY = 0;
 game.addEventListener("touchstart", (e) => {
@@ -153,35 +187,6 @@ game.addEventListener("touchend", (e) => {
     if (dy > 20) fastFall = true;
   }
 });
-
-spawnBlock();
-interval = setInterval(() => {
-  if (block) updateBlock();
-}, 30);
-const pauseBtn = document.getElementById("pauseBtn");
-const pauseOverlay = document.getElementById("pauseOverlay");
-
-let paused = false;
-
-pauseBtn.addEventListener("click", () => {
-  paused = !paused;
-  if (paused) {
-    pauseGame();
-  } else {
-    resumeGame();
-  }
+game.addEventListener("touchmove", (e) => {
+  e.preventDefault();
 });
-
-function pauseGame() {
-  clearInterval(interval);
-  pauseOverlay.style.display = "flex";
-  pauseBtn.textContent = "Продовжити";
-}
-
-function resumeGame() {
-  pauseOverlay.style.display = "none";
-  pauseBtn.textContent = "Пауза";
-  interval = setInterval(() => {
-    if (block) updateBlock();
-  }, 30);
-}

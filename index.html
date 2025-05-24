@@ -8,85 +8,28 @@
     <script src="game.js" defer></script>
   </head>
   <body>
-    <div
-      id="main-menu"
-      style="
-        display: flex;
-        flex-direction: column;
-        align-items: center;
-        justify-content: center;
-        height: 100vh;
-        background: #111;
-        color: white;
-      "
-    >
-      <h1>Color Catch</h1>
-      <button
-        id="startBtn"
-        style="
-          font-size: 24px;
-          padding: 10px 30px;
-          margin-top: 20px;
-          cursor: pointer;
-        "
-      >
-        Грати
-      </button>
+    <!-- Головне меню -->
+    <div id="main-menu" class="center-screen">
+      <h1>🎮 Color Drop</h1>
+      <button id="startBtn" class="btn-primary">Грати</button>
     </div>
 
     <!-- Ігровий екран -->
-    <div id="game-screen" style="display: none">
+    <div id="game-screen" style="display: none; position: relative">
       <div id="game">
         <div class="zone red"></div>
         <div class="zone yellow"></div>
         <div class="zone blue"></div>
       </div>
+
       <div class="info" id="score">Очки: 0 | Життя: 3</div>
-      <div id="game-screen" style="display: none; position: relative">
-        <div id="game">
-          <div class="zone red"></div>
-          <div class="zone yellow"></div>
-          <div class="zone blue"></div>
-        </div>
-        <div class="info" id="score">Очки: 0 | Життя: 3</div>
 
-        <!-- Кнопка паузи -->
-        <button
-          id="pauseBtn"
-          style="
-            position: absolute;
-            top: 10px;
-            right: 10px;
-            padding: 8px 12px;
-            font-size: 16px;
-            cursor: pointer;
-          "
-        >
-          Пауза
-        </button>
+      <button id="pauseBtn" class="btn-small">Пауза</button>
+      <button id="restartBtn" class="btn-small" style="top: 50px">
+        Рестарт
+      </button>
 
-        <!-- Повідомлення про паузу -->
-        <div
-          id="pauseOverlay"
-          style="
-            display: none;
-            position: absolute;
-            top: 0;
-            left: 0;
-            width: 100%;
-            height: 100%;
-            background: rgba(0, 0, 0, 0.7);
-            color: white;
-            font-size: 36px;
-            display: flex;
-            justify-content: center;
-            align-items: center;
-            pointer-events: none;
-          "
-        >
-          Пауза
-        </div>
-      </div>
+      <div id="pauseOverlay">Пауза</div>
     </div>
   </body>
 </html>
