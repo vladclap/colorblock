@@ -80,9 +80,7 @@ function updateBlock() {
     updateScore();
 
     if (lives <= 0) {
-      clearInterval(interval);
-      restartBtn.style.display = "block";
-      alert("🎮 Гру завершено!\nОчки: " + score);
+      endGame();
     } else {
       spawnBlock();
     }
@@ -91,6 +89,13 @@ function updateBlock() {
 
 function updateScore() {
   scoreEl.textContent = `Очки: ${score} | Життя: ${lives}`;
+}
+
+function endGame() {
+  clearInterval(interval);
+  alert("🎮 Гру завершено!\nОчки: " + score);
+  gameScreen.style.display = "none";
+  mainMenu.style.display = "flex";
 }
 
 function moveBlock(direction) {
