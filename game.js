@@ -31,7 +31,8 @@ let paused = false;
 // Швидкість
 let fallSpeedBase = 2;
 let fallSpeed = fallSpeedBase;
-const speedIncrement = 0.2;
+console.log(fallSpeed, "fallSpeedBase");
+const speedIncrement = 1;
 const scorePerLevel = 5;
 
 startBtn.addEventListener("click", () => {
@@ -129,8 +130,7 @@ function updateScore() {
 
   // Збільшення швидкості
   if (score > 0 && score % scorePerLevel === 0) {
-    fallSpeed =
-      fallSpeedBase + Math.floor(score / scorePerLevel) * speedIncrement;
+    fallSpeed += speedIncrement;
     if (fallSpeed > 10) fallSpeed = 10;
   }
 }
@@ -202,4 +202,17 @@ game.addEventListener("touchend", (e) => {
 });
 game.addEventListener("touchmove", (e) => {
   e.preventDefault();
+});
+burgerToggle.addEventListener("click", () => {
+  const isOpen = burgerDropdown.style.display === "flex";
+
+  burgerDropdown.style.display = isOpen ? "none" : "flex";
+
+  if (!isOpen && !paused) {
+    paused = true;
+    pauseGame();
+  } else if (isOpen && paused) {
+    paused = false;
+    resumeGame();
+  }
 });

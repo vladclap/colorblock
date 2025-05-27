@@ -12,7 +12,7 @@
     <div id="main-menu" class="center-screen">
       <h1>Color Drop</h1>
       <button id="startBtn" class="btn-primary">Грати</button>
-      <button id="setingsBtn" class="btn-primary">Продовжити</button>
+      <button id="continueBtn" class="btn-primary">Продовжити</button>
       <button id="setingsBtn" class="btn-primary">Налаштування</button>
       <button id="reitBtn" class="btn-primary">Рейтинг</button>
     </div>
@@ -27,10 +27,13 @@
 
       <div class="info" id="score">Очки: 0 | Життя: 3</div>
 
-      <button id="pauseBtn" class="btn-small">Пауза</button>
-      <button id="restartBtn" class="btn-small" style="top: 50px">
-        Рестарт
-      </button>
+      <div id="burgerMenu" class="burger-container">
+        <div class="burger-icon" id="burgerToggle">&#9776;</div>
+        <div class="burger-dropdown" id="burgerDropdown">
+          <button id="pauseBtn" class="btn-small">Пауза</button>
+          <button id="restartBtn" class="btn-small">Рестарт</button>
+        </div>
+      </div>
 
       <div id="pauseOverlay">Пауза</div>
     </div>
