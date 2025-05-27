@@ -148,6 +148,8 @@ body {
 /* ===== Текстова інформація зверху ===== */
 .info {
   position: fixed;
+  white-space: nowrap;
+  overflow: hidden;
   top: 10px;
   left: 50%;
   transform: translateX(-50%);
