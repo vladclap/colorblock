@@ -86,22 +86,35 @@ body {
   border: 2px solid #ccc;
   overflow: hidden;
 
-  /* Сіточка горизонтальна та вертикальна з дрібними клітинками */
+  /* Дрібна сіточка */
   background-image: linear-gradient(
       to right,
-      rgba(150, 150, 150, 0.3) 1px,
+      rgba(150, 150, 150, 0.2) 1px,
       transparent 1px
     ),
-    linear-gradient(to bottom, rgba(150, 150, 150, 0.3) 1px, transparent 1px),
-    /* Вертикальні лінії, що ділять на 3 частини */
-      linear-gradient(to right, rgba(100, 100, 100, 0.6) 2px, transparent 2px);
+    linear-gradient(to bottom, rgba(150, 150, 150, 0.2) 1px, transparent 1px);
+  background-size: 40px 40px;
+}
 
-  /* Розмір дрібної сіточки */
-  background-size: 193px 160px, 193px 160px,
-    /* Розмір для трьох вертикальних ліній: ширина блоку / 3 */ calc(100% / 3)
-      100%;
-  background-repeat: repeat, repeat, no-repeat;
-  background-position: left top, left top, left top;
+/* Вертикальні роздільні лінії на 1/3 і 2/3 */
+#game::before,
+#game::after {
+  content: "";
+  position: absolute;
+  top: 0;
+  bottom: 0;
+  width: 2px;
+  background: rgba(100, 100, 100, 0.5);
+  z-index: 1;
+  pointer-events: none;
+}
+
+#game::before {
+  left: 33.3333%;
+}
+
+#game::after {
+  left: 66.6666%;
 }
 
 /* ===== Блоки гри ===== */
