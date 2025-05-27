@@ -167,6 +167,7 @@ function pauseGame() {
 function resumeGame() {
   pauseOverlay.style.display = "none";
   pauseBtn.textContent = "Пауза";
+  clearInterval(interval); // Очищаємо старий інтервал перед запуском нового
   interval = setInterval(() => {
     if (!paused && block) updateBlock();
   }, 30);
@@ -203,16 +204,43 @@ game.addEventListener("touchend", (e) => {
 game.addEventListener("touchmove", (e) => {
   e.preventDefault();
 });
+// Змінні бургер-меню
+const burgerToggle = document.querySelector(".burger-btn");
+const burgerDropdown = document.querySelector(".burger-dropdown");
+
+// Кнопка паузи (тепер у меню)
+pauseBtn.addEventListener("click", () => {
+  // Закриваємо меню
+  burgerDropdown.style.display = "none";
+  paused = false;
+  resumeGame();
+});
+
+// Кнопка рестарту
+restartBtn.addEventListener("click", () => {
+  // Закриваємо меню
+  burgerDropdown.style.display = "none";
+
+  clearInterval(interval);
+  startGame();
+  paused = false;
+});
+
+// Логіка бургер-кнопки
 burgerToggle.addEventListener("click", () => {
   const isOpen = burgerDropdown.style.display === "flex";
 
-  burgerDropdown.style.display = isOpen ? "none" : "flex";
-
-  if (!isOpen && !paused) {
-    paused = true;
-    pauseGame();
-  } else if (isOpen && paused) {
-    paused = false;
-    resumeGame();
+  if (isOpen) {
+    burgerDropdown.style.display = "none";
+    if (paused) {
+      paused = false;
+      resumeGame();
+    }
+  } else {
+    burgerDropdown.style.display = "flex";
+    if (!paused) {
+      paused = true;
+      pauseGame();
+    }
   }
 });

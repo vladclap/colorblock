@@ -194,7 +194,6 @@ body {
     max-height: 700px;
   }
 }
-/* ===== Бургер-меню ===== */
 .burger-container {
   position: absolute;
   top: 10px;
@@ -202,31 +201,51 @@ body {
   z-index: 20;
 }
 
-.burger-icon {
+.burger-btn {
   font-size: 28px;
+  background: none;
   color: white;
+  border: none;
   cursor: pointer;
-  padding: 6px 10px;
-  background: #444;
+  padding: 6px 12px;
   border-radius: 6px;
-  user-select: none;
+  background-color: #333;
   transition: background 0.3s ease;
 }
 
-.burger-icon:hover {
-  background: #666;
+.burger-btn:hover {
+  background-color: #555;
 }
 
 .burger-dropdown {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100vw;
+  height: 100vh;
+  background: rgba(17, 17, 17, 0.95);
   display: none;
   flex-direction: column;
-  margin-top: 10px;
-  background: #333;
-  border-radius: 8px;
-  padding: 10px;
+  justify-content: center;
+  align-items: center;
+  z-index: 15;
 }
 
-.burger-dropdown .btn-small {
-  margin: 5px 0;
-  width: 100px;
+.burger-dropdown .btn-primary {
+  width: 220px;
+  max-width: 90%;
+  font-size: 20px;
+  padding: 12px 0;
+  margin: 12px 0;
+}
+@media (max-width: 400px) {
+  .btn-primary {
+    width: 90%;
+    font-size: 18px;
+  }
+
+  .burger-btn {
+    font-size: 24px;
+    padding: 4px 10px;
+  }
 }
