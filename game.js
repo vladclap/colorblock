@@ -10,17 +10,22 @@ const pauseOverlay = document.getElementById("pauseOverlay");
 
 const colors = ["red", "yellow", "blue"];
 const shapes = [
-  { width: 90, height: 30 },
-  { width: 60, height: 60 },
-  { width: 30, height: 90 },
+  { width: 90, height: 30 }, // горизонтальний прямокутник
+  { width: 60, height: 60 }, // квадрат
+  { width: 30, height: 90 }, // вертикальний прямокутник
+  { width: 40, height: 40 }, // менший квадрат
+  { width: 70, height: 40 }, // прямокутник середнього розміру
+  { width: 50, height: 80 }, // асиметрична фігура
 ];
 
 let block = null;
 let blockX = 0;
 let blockY = 0;
 let blockHeight = 30;
-let fallSpeed = 2;
-let fastFall = false;
+let fallSpeedBase = 2;
+let fallSpeed = fallSpeedBase;
+const speedIncrement = 0.5;
+const scorePerLevel = 5;
 let score = 0;
 let lives = 3;
 let interval;
@@ -34,6 +39,7 @@ startBtn.addEventListener("click", () => {
 
 restartBtn.addEventListener("click", () => {
   clearInterval(interval);
+  fallSpeed = fallSpeedBase; // Скидання при рестарті
   startGame();
 });
 
@@ -50,6 +56,7 @@ function startGame() {
   score = 0;
   lives = 3;
   paused = false;
+  fallSpeed = fallSpeedBase; // Скидання швидкості
   updateScore();
 
   // Очистити старий блок, якщо є
@@ -118,6 +125,15 @@ function updateBlock() {
 
 function updateScore() {
   scoreEl.textContent = `Очки: ${score} | Життя: ${lives}`;
+
+  // Збільшення швидкості кожні 5 очок
+  if (score > 0 && score % scorePerLevel === 0) {
+    fallSpeed =
+      fallSpeedBase + Math.floor(score / scorePerLevel) * speedIncrement;
+
+    // Можна обмежити максимум
+    if (fallSpeed > 10) fallSpeed = 10;
+  }
 }
 
 function endGame() {
