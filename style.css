@@ -94,10 +94,24 @@ body {
   background: #666;
 }
 
+#pauseBtn,
+#restartBtn {
+  z-index: 10; /* Вищий за pauseOverlay */
+  position: absolute;
+  right: 10px;
+  padding: 8px 12px;
+  font-size: 16px;
+  cursor: pointer;
+  background: #444;
+  border: none;
+  color: white;
+  border-radius: 6px;
+  user-select: none;
+  transition: background 0.3s ease;
+}
 #pauseBtn {
   top: 10px;
 }
-
 #restartBtn {
   top: 50px;
 }
@@ -115,7 +129,7 @@ body {
   display: flex;
   justify-content: center;
   align-items: center;
-  pointer-events: none;
+  pointer-events: auto; /* Змінив тут */
   user-select: none;
-  z-index: 10;
+  z-index: 5; /* Нижче за кнопки */
 }
