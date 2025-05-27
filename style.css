@@ -1,5 +1,8 @@
 /* ===== Глобальні стилі ===== */
 body {
+  user-select: none;
+  -webkit-user-select: none; /* для Safari */
+  -ms-user-select: none;
   margin: 0;
   background: #f9f9f9;
   font-family: sans-serif;
