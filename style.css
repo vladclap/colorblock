@@ -93,7 +93,7 @@ body {
       transparent 1px
     ),
     linear-gradient(to bottom, rgba(150, 150, 150, 0.3) 1px, transparent 1px);
-  background-size: 30px 30px; /* розмір комірки сіточки, налаштуй під себе */
+  background-size: 193px 160px; /* розмір комірки сіточки, налаштуй під себе */
 }
 
 /* ===== Блоки гри ===== */

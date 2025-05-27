@@ -30,7 +30,7 @@ let interval;
 let paused = false;
 
 // Швидкість
-let fallSpeedBase = 2;
+let fallSpeedBase = 4;
 let fallSpeed = fallSpeedBase;
 const speedIncrement = 0.5;
 const scorePerLevel = 5;
