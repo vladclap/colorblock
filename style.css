@@ -80,20 +80,28 @@ body {
   width: 100%;
   aspect-ratio: 9 / 16;
   max-height: 90vh;
-  background: rgba(238, 238, 238, 0.7); /* світло-сірий з прозорістю */
+  background: rgba(238, 238, 238, 0.7);
   margin: 20px auto;
   position: relative;
   border: 2px solid #ccc;
   overflow: hidden;
 
-  /* Додаємо сіточку */
+  /* Сіточка горизонтальна та вертикальна з дрібними клітинками */
   background-image: linear-gradient(
       to right,
       rgba(150, 150, 150, 0.3) 1px,
       transparent 1px
     ),
-    linear-gradient(to bottom, rgba(150, 150, 150, 0.3) 1px, transparent 1px);
-  background-size: 193px 160px; /* розмір комірки сіточки, налаштуй під себе */
+    linear-gradient(to bottom, rgba(150, 150, 150, 0.3) 1px, transparent 1px),
+    /* Вертикальні лінії, що ділять на 3 частини */
+      linear-gradient(to right, rgba(100, 100, 100, 0.6) 2px, transparent 2px);
+
+  /* Розмір дрібної сіточки */
+  background-size: 193px 160px, 193px 160px,
+    /* Розмір для трьох вертикальних ліній: ширина блоку / 3 */ calc(100% / 3)
+      100%;
+  background-repeat: repeat, repeat, no-repeat;
+  background-position: left top, left top, left top;
 }
 
 /* ===== Блоки гри ===== */
