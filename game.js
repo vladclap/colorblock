@@ -190,22 +190,30 @@ document.addEventListener("keyup", (e) => {
 });
 
 // Touch
+let touchStartX = 0;
+let touchStartY = 0;
 let isTouching = false;
+let fastFallTimeout; // для збереження таймера
 
-// Touch
 game.addEventListener("touchstart", (e) => {
   touchStartX = e.touches[0].clientX;
   touchStartY = e.touches[0].clientY;
   isTouching = true;
 
-  // Вмикаємо швидке падіння, поки палець на екрані
-  fastFall = true;
+  // Запускаємо таймер для включення швидкого падіння через 0.5 секунди
+  fastFallTimeout = setTimeout(() => {
+    if (isTouching) {
+      fastFall = true;
+    }
+  }, 500);
 });
 
 game.addEventListener("touchend", (e) => {
   const dx = e.changedTouches[0].clientX - touchStartX;
   const dy = e.changedTouches[0].clientY - touchStartY;
+
   isTouching = false;
+  clearTimeout(fastFallTimeout); // Скасування таймера
   fastFall = false; // Вимикаємо швидке падіння після відпускання
 
   // Обробка свайпів
