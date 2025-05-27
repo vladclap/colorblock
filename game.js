@@ -190,27 +190,31 @@ document.addEventListener("keyup", (e) => {
 });
 
 // Touch
-let touchStartX = 0;
-let touchStartY = 0;
+let isTouching = false;
+
+// Touch
 game.addEventListener("touchstart", (e) => {
   touchStartX = e.touches[0].clientX;
   touchStartY = e.touches[0].clientY;
+  isTouching = true;
+
+  // Вмикаємо швидке падіння, поки палець на екрані
+  fastFall = true;
 });
+
 game.addEventListener("touchend", (e) => {
   const dx = e.changedTouches[0].clientX - touchStartX;
   const dy = e.changedTouches[0].clientY - touchStartY;
+  isTouching = false;
+  fastFall = false; // Вимикаємо швидке падіння після відпускання
+
+  // Обробка свайпів
   if (Math.abs(dx) > Math.abs(dy)) {
     if (dx > 20) moveBlock("right");
     if (dx < -20) moveBlock("left");
-  } else {
-    if (dy > 20) {
-      fastFall = true;
-      setTimeout(() => {
-        fastFall = false;
-      }, 100);
-    }
   }
 });
+
 game.addEventListener("touchmove", (e) => {
   e.preventDefault();
 });
