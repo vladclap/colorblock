@@ -205,7 +205,7 @@ game.addEventListener("touchstart", (e) => {
     if (isTouching) {
       fastFall = true;
     }
-  }, 500);
+  }, 300);
 });
 
 game.addEventListener("touchend", (e) => {
