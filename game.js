@@ -32,7 +32,7 @@ let paused = false;
 let fallSpeedBase = 2;
 let fallSpeed = fallSpeedBase;
 console.log(fallSpeed, "fallSpeedBase");
-const speedIncrement = 1;
+const speedIncrement = 0.3;
 const scorePerLevel = 5;
 
 startBtn.addEventListener("click", () => {
