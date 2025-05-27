@@ -55,7 +55,9 @@ body {
   max-width: 480px;
   margin: 0 auto;
   padding: 0 10px;
+  padding-top: 50px; /* Відступ зверху під info */
   box-sizing: border-box;
+  position: relative;
 }
 
 #game {
@@ -97,12 +99,21 @@ body {
   left: 66.66%;
 }
 
-/* ===== Текстова інформація ===== */
+/* ===== Текстова інформація зверху ===== */
 .info {
-  text-align: center;
+  position: fixed;
+  top: 10px;
+  left: 50%;
+  transform: translateX(-50%);
+  background: rgba(34, 34, 34, 0.85);
+  padding: 8px 20px;
+  border-radius: 12px;
   font-size: 18px;
-  margin: 10px 0;
-  word-break: break-word;
+  z-index: 100;
+  user-select: none;
+  max-width: 90%;
+  text-align: center;
+  box-shadow: 0 0 10px rgba(0, 0, 0, 0.6);
 }
 
 /* ===== Кнопки гри ===== */
@@ -148,57 +159,12 @@ body {
   z-index: 5;
 }
 
-/* ===== Медіа-запити для адаптації ===== */
-
-/* Смартфони */
-@media (max-width: 400px) {
-  .btn-primary {
-    max-width: 90%;
-    font-size: 16px;
-  }
-
-  .info {
-    font-size: 16px;
-  }
-
-  #pauseBtn,
-  #restartBtn {
-    font-size: 14px;
-    padding: 6px 10px;
-  }
-}
-
-/* Планшети */
-@media (min-width: 768px) {
-  .btn-primary {
-    font-size: 20px;
-    max-width: 300px;
-  }
-
-  .info {
-    font-size: 20px;
-  }
-
-  #pauseOverlay {
-    font-size: 40px;
-  }
-}
-
-/* Десктопи */
-@media (min-width: 1024px) {
-  #game-screen {
-    max-width: 600px;
-  }
-
-  #game {
-    max-height: 700px;
-  }
-}
+/* ===== Бургер меню ===== */
 .burger-container {
-  position: absolute;
+  position: fixed; /* Фіксована позиція */
   top: 10px;
   left: 10px;
-  z-index: 20;
+  z-index: 110; /* Вище ніж info */
 }
 
 .burger-btn {
@@ -228,7 +194,7 @@ body {
   flex-direction: column;
   justify-content: center;
   align-items: center;
-  z-index: 15;
+  z-index: 150;
 }
 
 .burger-dropdown .btn-primary {
@@ -238,14 +204,55 @@ body {
   padding: 12px 0;
   margin: 12px 0;
 }
+
+/* ===== Медіа-запити для адаптації ===== */
+
+/* Смартфони */
 @media (max-width: 400px) {
   .btn-primary {
-    width: 90%;
-    font-size: 18px;
+    max-width: 90%;
+    font-size: 16px;
+  }
+
+  .info {
+    font-size: 16px;
+  }
+
+  #pauseBtn,
+  #restartBtn {
+    font-size: 14px;
+    padding: 6px 10px;
   }
 
   .burger-btn {
     font-size: 24px;
     padding: 4px 10px;
+  }
+}
+
+/* Планшети */
+@media (min-width: 768px) {
+  .btn-primary {
+    font-size: 20px;
+    max-width: 300px;
+  }
+
+  .info {
+    font-size: 20px;
+  }
+
+  #pauseOverlay {
+    font-size: 40px;
+  }
+}
+
+/* Десктопи */
+@media (min-width: 1024px) {
+  #game-screen {
+    max-width: 600px;
+  }
+
+  #game {
+    max-height: 700px;
   }
 }
