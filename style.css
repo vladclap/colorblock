@@ -4,10 +4,23 @@ body {
   -webkit-user-select: none; /* для Safari */
   -ms-user-select: none;
   margin: 0;
-  background: #f9f9f9;
-  font-family: sans-serif;
+  background: linear-gradient(-45deg, #fceabb, #f8b500, #00c9ff, #92fe9d);
+  background-size: 400% 400%;
+  animation: gradientBG 15s ease infinite;
   color: #111;
   touch-action: manipulation;
+  font-family: "Orbitron", sans-serif;
+}
+@keyframes gradientBG {
+  0% {
+    background-position: 0% 50%;
+  }
+  50% {
+    background-position: 100% 50%;
+  }
+  100% {
+    background-position: 0% 50%;
+  }
 }
 
 .center-screen {
@@ -274,5 +287,44 @@ body {
 
   #game {
     max-height: 700px;
+  }
+}
+/* Підключи шрифт (у <head>) – приклад з Orbitron */
+@import url("https://fonts.googleapis.com/css2?family=Orbitron:wght@700&display=swap");
+
+/* 3-D різноколірний логотип */
+.logo-3d {
+  font-family: "Orbitron", sans-serif;
+  font-size: 56px; /* зробити більшим */
+  font-weight: 700;
+  line-height: 1.1;
+  text-transform: uppercase;
+  letter-spacing: 2px;
+
+  /* Анімований градієнт усередині тексту */
+  background: linear-gradient(90deg, #e63946, #f4a261, #2a9d8f, #e63946);
+  background-size: 300% 100%;
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  animation: rainbow 6s linear infinite;
+
+  /* 3-D ефект через багатошаровий text-shadow */
+  text-shadow: 0 1px 0 #0004, 0 2px 2px #0003, 0 4px 4px #0002, 0 6px 6px #0001;
+}
+
+/* Анімація градієнта */
+@keyframes rainbow {
+  0% {
+    background-position: 0% 0;
+  }
+  100% {
+    background-position: 300% 0;
+  }
+}
+
+/* Для малих екранів зменшуємо */
+@media (max-width: 400px) {
+  .logo-3d {
+    font-size: 40px;
   }
 }
