@@ -76,7 +76,8 @@ body {
   position: absolute;
   top: 0;
   left: 0;
-  border-radius: 4px;
+  border-radius: 6px;
+  box-shadow: 0 0 8px rgba(0, 0, 0, 0.3);
 }
 
 .zone {
@@ -84,19 +85,41 @@ body {
   height: 60px;
   position: absolute;
   bottom: 0;
+
+  transition: opacity 0.3s ease;
+  /* opacity прибрано */
 }
 
+/* Нові кольори зон */
 .red {
-  background: red;
+  background: #e63946; /* Яскравий червоний */
   left: 0%;
 }
-.yellow {
-  background: yellow;
+
+.teal {
+  background: #2a9d8f; /* Бірюзовий */
   left: 33.33%;
 }
-.blue {
-  background: blue;
+
+.orange {
+  background: #f4a261; /* Помаранчевий */
   left: 66.66%;
+}
+
+/* Кольори блоків відповідно до зон */
+.block.red {
+  background-color: #e63946;
+  box-shadow: 0 0 10px #e63946;
+}
+
+.block.teal {
+  background-color: #2a9d8f;
+  box-shadow: 0 0 10px #2a9d8f;
+}
+
+.block.orange {
+  background-color: #f4a261;
+  box-shadow: 0 0 10px #f4a261;
 }
 
 /* ===== Текстова інформація зверху ===== */

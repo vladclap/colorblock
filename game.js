@@ -8,7 +8,8 @@ const restartBtn = document.getElementById("restartBtn");
 const pauseBtn = document.getElementById("pauseBtn");
 const pauseOverlay = document.getElementById("pauseOverlay");
 
-const colors = ["red", "yellow", "blue"];
+const colors = ["red", "teal", "orange"];
+
 const shapes = [
   { width: 90, height: 30 },
   { width: 60, height: 60 },
@@ -31,7 +32,6 @@ let paused = false;
 // Швидкість
 let fallSpeedBase = 2;
 let fallSpeed = fallSpeedBase;
-console.log(fallSpeed, "fallSpeedBase");
 const speedIncrement = 0.5;
 const scorePerLevel = 5;
 
@@ -47,6 +47,7 @@ restartBtn.addEventListener("click", () => {
 });
 
 pauseBtn.addEventListener("click", () => {
+  burgerDropdown.style.display = "none"; // ховаємо меню
   paused = !paused;
   if (paused) {
     pauseGame();
@@ -128,8 +129,12 @@ function updateBlock() {
 function updateScore() {
   scoreEl.textContent = `Очки: ${score} | Життя: ${lives}`;
 
-  // Збільшення швидкості
-  if (score > 0 && score % scorePerLevel === 0) {
+  // Збільшення швидкості лише при переході рівня
+  if (
+    score > 0 &&
+    score % scorePerLevel === 0 &&
+    fallSpeed === fallSpeedBase + speedIncrement * (score / scorePerLevel - 1)
+  ) {
     fallSpeed += speedIncrement;
     if (fallSpeed > 10) fallSpeed = 10;
   }
@@ -149,10 +154,10 @@ function endGame() {
 function moveBlock(direction) {
   if (!block) return;
   const zoneW = game.clientWidth / 3;
-  if (direction === "left" && blockX >= zoneW) blockX -= zoneW;
+  if (direction === "left" && blockX - zoneW >= 0) blockX -= zoneW;
   if (
     direction === "right" &&
-    blockX + block.offsetWidth <= game.clientWidth - zoneW
+    blockX + zoneW <= game.clientWidth - block.offsetWidth
   )
     blockX += zoneW;
   block.style.left = blockX + "px";
@@ -167,7 +172,7 @@ function pauseGame() {
 function resumeGame() {
   pauseOverlay.style.display = "none";
   pauseBtn.textContent = "Пауза";
-  clearInterval(interval); // Очищаємо старий інтервал перед запуском нового
+  clearInterval(interval);
   interval = setInterval(() => {
     if (!paused && block) updateBlock();
   }, 30);
@@ -198,29 +203,25 @@ game.addEventListener("touchend", (e) => {
     if (dx > 20) moveBlock("right");
     if (dx < -20) moveBlock("left");
   } else {
-    if (dy > 20) fastFall = true;
+    if (dy > 20) {
+      fastFall = true;
+      setTimeout(() => {
+        fastFall = false;
+      }, 100);
+    }
   }
 });
 game.addEventListener("touchmove", (e) => {
   e.preventDefault();
 });
+
 // Змінні бургер-меню
 const burgerToggle = document.querySelector(".burger-btn");
 const burgerDropdown = document.querySelector(".burger-dropdown");
 
-// Кнопка паузи (тепер у меню)
-pauseBtn.addEventListener("click", () => {
-  // Закриваємо меню
-  burgerDropdown.style.display = "none";
-  paused = false;
-  resumeGame();
-});
-
 // Кнопка рестарту
 restartBtn.addEventListener("click", () => {
-  // Закриваємо меню
   burgerDropdown.style.display = "none";
-
   clearInterval(interval);
   startGame();
   paused = false;
