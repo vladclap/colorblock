@@ -1,45 +1,670 @@
 <!DOCTYPE html>
 <html lang="uk">
   <head>
-    <meta charset="UTF-8" />
-    <title>Color Catch</title>
-    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <link rel="stylesheet" href="style.css" />
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Ліза — Санітарна зачистка | 500 €</title>
+    <meta
+      name="description"
+      content="Професійна санітарна зачистка біля ресторанів і вуличних туалетів у селі. Фіксована ціна 500 €. Екстрені виїзди, безпечні методи, повна утилізація."
+    />
+    <meta property="og:title" content="Ліза — Санітарна зачистка | 500 €" />
+    <meta
+      property="og:description"
+      content="Професійне прибирання та дезінфекція зовнішніх майданчиків. Швидко, конфіденційно, згідно норм. Ціна: 500 €."
+    />
+    <meta property="og:type" content="website" />
+    <meta name="theme-color" content="#0ea5e9" />
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
     <link
-      href="https://fonts.googleapis.com/css2?family=Orbitron:wght@400;700&display=swap"
+      href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap"
       rel="stylesheet"
     />
+    <style>
+      :root {
+        --bg: #0b1020;
+        --card: #121a30;
+        --muted: #9fb3c8;
+        --text: #e7f0fb;
+        --brand: #0ea5e9; /* sky-500 */
+        --accent: #22c55e; /* green-500 */
+        --danger: #ef4444; /* red-500 */
+        --ring: rgba(14, 165, 233, 0.35);
+        --radius: 18px;
+        --shadow: 0 10px 30px rgba(2, 6, 23, 0.35);
+      }
+      * {
+        box-sizing: border-box;
+      }
+      html,
+      body {
+        height: 100%;
+      }
+      body {
+        margin: 0;
+        font-family: Inter, system-ui, -apple-system, Segoe UI, Roboto, Arial,
+          "Noto Sans", "Apple Color Emoji", "Segoe UI Emoji";
+        background: radial-gradient(
+            1200px 800px at 10% -10%,
+            rgba(14, 165, 233, 0.18),
+            transparent
+          ),
+          radial-gradient(
+            1200px 800px at 90% 10%,
+            rgba(34, 197, 94, 0.12),
+            transparent
+          ),
+          var(--bg);
+        color: var(--text);
+        line-height: 1.6;
+      }
+      a {
+        color: var(--brand);
+        text-decoration: none;
+      }
+      a:hover {
+        opacity: 0.9;
+      }
+      .container {
+        width: min(1200px, 92vw);
+        margin-inline: auto;
+      }
+      header {
+        position: sticky;
+        top: 0;
+        z-index: 30;
+        backdrop-filter: saturate(180%) blur(10px);
+        background: linear-gradient(
+          180deg,
+          rgba(11, 16, 32, 0.9),
+          rgba(11, 16, 32, 0.65)
+        );
+        border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+      }
+      .nav {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        padding: 14px 0;
+      }
+      .brand {
+        display: flex;
+        align-items: center;
+        gap: 12px;
+        font-weight: 700;
+      }
+      .logo {
+        width: 40px;
+        height: 40px;
+        display: grid;
+        place-items: center;
+        border-radius: 12px;
+        background: linear-gradient(135deg, var(--brand), #38bdf8);
+        box-shadow: var(--shadow);
+      }
+      .logo svg {
+        width: 22px;
+        height: 22px;
+        fill: white;
+      }
+      .cta {
+        display: inline-flex;
+        align-items: center;
+        gap: 10px;
+        padding: 12px 18px;
+        border-radius: 999px;
+        background: linear-gradient(135deg, var(--brand), #38bdf8);
+        color: white;
+        font-weight: 600;
+        border: 0;
+        cursor: pointer;
+        box-shadow: var(--shadow);
+      }
+      .cta:hover {
+        transform: translateY(-1px);
+      }
 
-    <script src="game.js" defer></script>
+      /* Hero */
+      .hero {
+        padding: 64px 0 32px;
+      }
+      .hero-wrap {
+        display: grid;
+        gap: 28px;
+        align-items: center;
+        grid-template-columns: 1.2fr 0.8fr;
+      }
+      .hero h1 {
+        font-size: clamp(28px, 4vw, 48px);
+        line-height: 1.12;
+        margin: 0;
+      }
+      .hero p {
+        color: var(--muted);
+        margin: 10px 0 0;
+      }
+      .badges {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 10px;
+        margin-top: 18px;
+      }
+      .badge {
+        border: 1px solid rgba(255, 255, 255, 0.1);
+        background: rgba(255, 255, 255, 0.03);
+        padding: 8px 12px;
+        border-radius: 999px;
+        font-size: 14px;
+      }
+      .price-card {
+        background: linear-gradient(
+          180deg,
+          rgba(56, 189, 248, 0.15),
+          rgba(2, 6, 23, 0.6)
+        );
+        border: 1px solid rgba(255, 255, 255, 0.08);
+        border-radius: var(--radius);
+        padding: 18px;
+        display: flex;
+        flex-direction: column;
+        gap: 10px;
+      }
+      .price {
+        font-size: 40px;
+        font-weight: 800;
+      }
+      .note {
+        font-size: 14px;
+        color: var(--muted);
+      }
+
+      /* Cards */
+      .grid {
+        display: grid;
+        gap: 18px;
+      }
+      .grid-3 {
+        grid-template-columns: repeat(3, 1fr);
+      }
+      .card {
+        background: var(--card);
+        border: 1px solid rgba(255, 255, 255, 0.06);
+        border-radius: var(--radius);
+        padding: 20px;
+        box-shadow: var(--shadow);
+      }
+      .card h3 {
+        margin: 0 0 8px;
+        font-size: 18px;
+      }
+
+      /* Features list */
+      .features {
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        gap: 18px;
+        margin-top: 10px;
+      }
+      .feature {
+        display: flex;
+        gap: 12px;
+        align-items: flex-start;
+      }
+      .feature .icon {
+        width: 28px;
+        height: 28px;
+        border-radius: 8px;
+        background: rgba(34, 197, 94, 0.18);
+        display: grid;
+        place-items: center;
+      }
+      .feature svg {
+        width: 16px;
+        height: 16px;
+        fill: #86efac;
+      }
+
+      /* Section spacing */
+      section {
+        padding: 38px 0;
+      }
+      .section-title {
+        font-size: 26px;
+        margin: 0 0 14px;
+      }
+      .muted {
+        color: var(--muted);
+      }
+
+      /* List */
+      .list {
+        display: grid;
+        gap: 10px;
+        padding-left: 0;
+        list-style: none;
+      }
+      .list li {
+        display: flex;
+        gap: 10px;
+      }
+      .check {
+        margin-top: 4px;
+      }
+
+      /* CTA block */
+      .cta-block {
+        display: grid;
+        grid-template-columns: 1.2fr 0.8fr;
+        gap: 18px;
+        align-items: center;
+      }
+      .cta-panel {
+        background: linear-gradient(
+          180deg,
+          rgba(34, 197, 94, 0.15),
+          rgba(2, 6, 23, 0.6)
+        );
+        border: 1px solid rgba(255, 255, 255, 0.08);
+        border-radius: var(--radius);
+        padding: 20px;
+      }
+
+      /* Form */
+      form {
+        display: grid;
+        gap: 12px;
+      }
+      label {
+        font-weight: 600;
+      }
+      input,
+      textarea,
+      select {
+        width: 100%;
+        padding: 12px 14px;
+        border-radius: 12px;
+        background: #0f172a;
+        color: var(--text);
+        border: 1px solid rgba(255, 255, 255, 0.08);
+        outline: none;
+        transition: box-shadow 0.2s, border-color 0.2s;
+      }
+      input:focus,
+      textarea:focus,
+      select:focus {
+        border-color: var(--brand);
+        box-shadow: 0 0 0 4px var(--ring);
+      }
+      textarea {
+        min-height: 120px;
+        resize: vertical;
+      }
+      .btn-row {
+        display: flex;
+        gap: 10px;
+        flex-wrap: wrap;
+      }
+      .btn {
+        padding: 12px 16px;
+        border-radius: 12px;
+        background: var(--brand);
+        border: none;
+        color: #fff;
+        font-weight: 700;
+        cursor: pointer;
+      }
+      .btn.secondary {
+        background: transparent;
+        border: 1px solid rgba(255, 255, 255, 0.18);
+      }
+
+      /* Footer */
+      footer {
+        padding: 24px 0 60px;
+        color: var(--muted);
+        border-top: 1px solid rgba(255, 255, 255, 0.06);
+      }
+
+      /* Responsive */
+      @media (max-width: 920px) {
+        .hero-wrap,
+        .cta-block {
+          grid-template-columns: 1fr;
+        }
+      }
+    </style>
   </head>
   <body>
-    <!-- Головне меню -->
-    <div id="main-menu" class="center-screen">
-      <h3 class="logo-3d">Color Catch</h3>
-      <button id="startBtn" class="btn-primary">Грати</button>
-      <button id="continueBtn" class="btn-primary">Продовжити</button>
-      <button id="setingsBtn" class="btn-primary">Налаштування</button>
-      <button id="reitBtn" class="btn-primary">Рейтинг</button>
-    </div>
-
-    <!-- Ігровий екран -->
-    <div id="game-screen" style="display: none; position: relative">
-      <div class="info" id="score">Очки: 0 | Життя: 3</div>
-      <div id="game">
-        <div class="zone red"></div>
-        <div class="zone teal"></div>
-        <div class="zone orange"></div>
+    <header>
+      <div class="container nav">
+        <div class="brand" aria-label="Бренд Ліза">
+          <div class="logo" aria-hidden="true">
+            <!-- Mop + sparkle icon -->
+            <svg viewBox="0 0 24 24" role="img" aria-label="Логотип швабра">
+              <path
+                d="M21 3a1 1 0 0 1 .117 1.993L21 5h-3.586l-3.707 3.707a1 1 0 0 1-1.32.083l-.094-.083-2-2a1 1 0 0 1 1.32-1.497l.094.083L12.586 7 15 4.586A2 2 0 0 1 16.414 4H21zM6 3a1 1 0 0 1 .993.883L7 4v6.586l6.707 6.707a1 1 0 0 1-1.32 1.497l-.094-.083L5 12.414V4a1 1 0 0 1 1-1zM5 13h3l6 6H5a2 2 0 0 1-2-2v-1a3 3 0 0 1 2-3z"
+              />
+            </svg>
+          </div>
+          <span>Ліза • Санітарна зачистка</span>
+        </div>
+        <a class="cta" href="#contact"
+          >Замовити за 500 €
+          <svg
+            width="18"
+            height="18"
+            viewBox="0 0 24 24"
+            fill="none"
+            aria-hidden="true"
+          >
+            <path
+              fill="currentColor"
+              d="M13 5.586 18.414 11H4a1 1 0 1 0 0 2h14.414L13 18.414A1 1 0 0 0 14.414 20l7-7-7-7A1 1 0 0 0 13 5.586Z"
+            />
+          </svg>
+        </a>
       </div>
+    </header>
 
-      <div class="burger-container">
-        <button id="burgerToggle" class="burger-btn">☰</button>
-        <div id="burgerDropdown" class="burger-dropdown">
-          <button id="pauseBtn" class="btn-primary">Пауза</button>
-          <button id="restartBtn" class="btn-primary">Рестарт</button>
+    <main>
+      <!-- Hero -->
+      <section class="hero">
+        <div class="container hero-wrap">
+          <div>
+            <h1>Професійна зачистка та дезінфекція зовнішніх зон</h1>
+            <p>
+              Оперативно та конфіденційно очищаю території біля ресторанів,
+              вуличних туалетів і громадських локацій у селі. Працюю за
+              безпечними протоколами і з офіційною утилізацією відходів.
+            </p>
+            <div class="badges" role="list" aria-label="Переваги">
+              <span class="badge">Фіксована ціна: <strong>500 €</strong></span>
+              <span class="badge">24/7 екстрені виїзди</span>
+              <span class="badge">Повна дезінфекція</span>
+              <span class="badge">Конфіденційність</span>
+            </div>
+          </div>
+          <aside class="price-card" aria-label="Картка ціни">
+            <div class="price">500 €</div>
+            <div>
+              Санітарна зачистка однієї локації
+              <span class="muted">(до 120 м²)</span>
+            </div>
+            <ul class="list muted">
+              <li><span class="check">✅</span> виїзд у межах села</li>
+              <li>
+                <span class="check">✅</span> збір та герметизація біологічних
+                відходів
+              </li>
+              <li>
+                <span class="check">✅</span> миття високим тиском +
+                біодезінфекція
+              </li>
+              <li>
+                <span class="check">✅</span> утилізація відповідно до норм
+              </li>
+            </ul>
+            <a
+              class="btn"
+              href="#contact"
+              aria-label="Перейти до форми замовлення"
+              >Замовити зараз</a
+            >
+            <div class="note">
+              * Додатково: виїзд за межі села, нічні виклики, великі площі.
+            </div>
+          </aside>
+        </div>
+      </section>
+
+      <!-- Чому ми -->
+      <section>
+        <div class="container grid grid-3">
+          <article class="card">
+            <h3>Безпека та відповідність</h3>
+            <p class="muted">
+              Використовую ЗІЗ (щитки, респіратори, костюми), засоби із
+              сертифікованими дезрозчинами та маркуванням відходів. Дотримуюсь
+              санітарних протоколів.
+            </p>
+          </article>
+          <article class="card">
+            <h3>Швидко й непомітно</h3>
+            <p class="muted">
+              Приїзд у погоджений час, мінімум шуму, робота огороджується
+              стрічкою та переносними знаками, щоб не заважати відвідувачам.
+            </p>
+          </article>
+          <article class="card">
+            <h3>Гарантія результату</h3>
+            <p class="muted">
+              Повернення території в гігієнічний стан: прибрано, помито,
+              продезінфіковано, без запаху. Фотозвіт до/після на запит.
+            </p>
+          </article>
+        </div>
+      </section>
+
+      <!-- Перелік робіт -->
+      <section>
+        <div class="container">
+          <h2 class="section-title">Що входить у послугу</h2>
+          <div class="features">
+            <div class="feature">
+              <div class="icon" aria-hidden="true">
+                <svg viewBox="0 0 24 24">
+                  <path d="M4 4h16v3H4zM6 9h12v11H6z" />
+                </svg>
+              </div>
+              <div>
+                <strong>Огляд і зонування</strong>
+                <p class="muted">
+                  Оцінка площі, перекриття доступу, встановлення
+                  попереджувальних знаків.
+                </p>
+              </div>
+            </div>
+            <div class="feature">
+              <div class="icon" aria-hidden="true">
+                <svg viewBox="0 0 24 24">
+                  <path d="M5 20h14l-2-9H7zM7 4h10v4H7z" />
+                </svg>
+              </div>
+              <div>
+                <strong>Збір і герметизація</strong>
+                <p class="muted">
+                  Безконтактний збір, пакування у біобезпечні контейнери,
+                  маркування.
+                </p>
+              </div>
+            </div>
+            <div class="feature">
+              <div class="icon" aria-hidden="true">
+                <svg viewBox="0 0 24 24">
+                  <path d="M4 12h16v2H4zM4 8h10v2H4zM4 16h12v2H4z" />
+                </svg>
+              </div>
+              <div>
+                <strong>Миття під тиском</strong>
+                <p class="muted">
+                  Гідромийка, біорозчинні очищувачі, видалення плям та осадів.
+                </p>
+              </div>
+            </div>
+            <div class="feature">
+              <div class="icon" aria-hidden="true">
+                <svg viewBox="0 0 24 24">
+                  <path
+                    d="M12 2a10 10 0 1 0 0 20 10 10 0 0 0 0-20zm1 10h5a6 6 0 0 1-6 6v-5z"
+                  />
+                </svg>
+              </div>
+              <div>
+                <strong>Дезінфекція і контроль запахів</strong>
+                <p class="muted">
+                  Застосування безпечних деззасобів, нейтралізація запаху,
+                  перевірка якості.
+                </p>
+              </div>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <!-- Територія роботи та FAQ -->
+      <section>
+        <div class="container grid grid-3">
+          <div class="card">
+            <h3>Територія виїзду</h3>
+            <p class="muted">
+              Працюю в межах вашого села та сусідніх населених пунктів за
+              домовленістю. Дальні виїзди — за доплатою.
+            </p>
+            <ul class="list">
+              <li>🏠 Приватні подвір'я та двори</li>
+              <li>🍽️ Зовнішні зони ресторанів і кафе</li>
+              <li>🚻 Громадські вбиральні, зупинки, ярмарки</li>
+            </ul>
+          </div>
+          <div class="card">
+            <h3>Часті запитання</h3>
+            <ul class="list muted">
+              <li>
+                <strong>Скільки триває робота?</strong> Зазвичай 1–3 години на
+                локацію.
+              </li>
+              <li>
+                <strong>Чи потрібен доступ до води/електрики?</strong> Бажано,
+                але можу привезти обладнання автономно.
+              </li>
+              <li>
+                <strong>Як відбувається оплата?</strong> Готівка/переказ після
+                виконання, аванс для нічних викликів.
+              </li>
+            </ul>
+          </div>
+          <div class="card">
+            <h3>Стандарти безпеки</h3>
+            <p class="muted">
+              Застосовую ЗІЗ класу не нижче FFP2, захисні окуляри, водостійкі
+              рукавички, утилізаційні мішки класу В та сертифіковані деззасоби.
+            </p>
+          </div>
+        </div>
+      </section>
+
+      <!-- Форма замовлення -->
+      <section id="contact">
+        <div class="container cta-block">
+          <div class="cta-panel">
+            <h2 class="section-title">Замовити послугу</h2>
+            <p class="muted">
+              Опишіть локацію та зручний час. Відповім з підтвердженням і
+              деталями.
+            </p>
+            <form aria-label="Форма замовлення (демо)">
+              <div>
+                <label for="name">Ім'я</label>
+                <input
+                  id="name"
+                  name="name"
+                  type="text"
+                  placeholder="Як до вас звертатися?"
+                  required
+                />
+              </div>
+              <div>
+                <label for="phone">Телефон або email</label>
+                <input
+                  id="phone"
+                  name="phone"
+                  type="text"
+                  placeholder="+380… або email"
+                  required
+                />
+              </div>
+              <div>
+                <label for="location">Локація</label>
+                <input
+                  id="location"
+                  name="location"
+                  type="text"
+                  placeholder="Село, адреса або орієнтир"
+                />
+              </div>
+              <div>
+                <label for="time">Бажаний час</label>
+                <select id="time" name="time">
+                  <option>Якнайшвидше</option>
+                  <option>Сьогодні ввечері</option>
+                  <option>Завтра</option>
+                  <option>У погоджений день</option>
+                </select>
+              </div>
+              <div>
+                <label for="details">Деталі</label>
+                <textarea
+                  id="details"
+                  name="details"
+                  placeholder="Коротко опишіть площу, покриття, доступ до води тощо"
+                ></textarea>
+              </div>
+              <div class="btn-row">
+                <button type="submit" class="btn">
+                  Надіслати запит (500 €)
+                </button>
+                <button type="reset" class="btn secondary">Очистити</button>
+              </div>
+              <p class="note">
+                Надсилаючи форму, ви погоджуєтесь на обробку персональних даних
+                для зв’язку з вами.
+              </p>
+            </form>
+          </div>
+          <div class="card">
+            <h3>Контакти</h3>
+            <ul class="list">
+              <li>
+                📞
+                <a href="tel:+380000000000" aria-label="Зателефонувати"
+                  >+380 00 000 00 00</a
+                >
+              </li>
+              <li>
+                ✉️
+                <a
+                  href="mailto:liza.clean@example.com"
+                  aria-label="Написати на email"
+                  >liza.clean@example.com</a
+                >
+              </li>
+              <li>📍 Ваше село та околиці</li>
+            </ul>
+            <hr style="border-color: rgba(255, 255, 255, 0.08)" />
+            <h4>Графік</h4>
+            <p class="muted">Будні 08:00–21:00 • Екстрено 24/7</p>
+          </div>
+        </div>
+      </section>
+    </main>
+
+    <footer>
+      <div class="container">
+        <div>
+          © <span id="year"></span> Ліза • Санітарна зачистка. Усі права
+          захищено.
+        </div>
+        <div class="muted">
+          Демонстраційний шаблон сайту. Замість реальних даних використано
+          приклади.
         </div>
       </div>
+    </footer>
 
-      <div id="pauseOverlay">Пауза</div>
-    </div>
+    <script>
+      // Автоматичний рік у підвалі
+      document.getElementById("year").textContent = new Date().getFullYear();
+    </script>
   </body>
 </html>
