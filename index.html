@@ -174,6 +174,50 @@
         color: var(--muted);
         padding: 40px 10px;
       }
+
+      .modal-overlay {
+        position: fixed;
+        inset: 0;
+        background: rgba(15, 23, 42, 0.75);
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        z-index: 9999;
+        padding: 20px;
+      }
+
+      .modal {
+        width: min(600px, 100%);
+        background: white;
+        border-radius: 32px;
+        padding: 48px 28px;
+        text-align: center;
+        box-shadow: 0 30px 80px rgba(0, 0, 0, 0.25);
+        animation: modalPop 0.35s ease;
+      }
+
+      .modal h2 {
+        margin: 0;
+        font-size: clamp(36px, 6vw, 64px);
+        line-height: 1.1;
+        color: var(--primary);
+      }
+
+      .modal button {
+        margin-top: 28px;
+        min-width: 180px;
+      }
+
+      @keyframes modalPop {
+        from {
+          opacity: 0;
+          transform: scale(0.9);
+        }
+        to {
+          opacity: 1;
+          transform: scale(1);
+        }
+      }
       @media (max-width: 640px) {
         .app {
           padding: 12px;
@@ -199,6 +243,12 @@
     </style>
   </head>
   <body>
+    <div class="modal-overlay" id="loveModal">
+      <div class="modal">
+        <h2>Ліза, я тебе люблю ❤️</h2>
+        <button class="primary" onclick="closeModal()">Відкрити сайт</button>
+      </div>
+    </div>
     <main class="app">
       <header>
         <h1>Тести з терапевтичних вправ</h1>
@@ -218,6 +268,9 @@
     </main>
 
     <script>
+      function closeModal() {
+        document.getElementById("loveModal").style.display = "none";
+      }
       const QUESTIONS = [
         {
           topic: "Тема №1",
