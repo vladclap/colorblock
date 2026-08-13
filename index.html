@@ -97,10 +97,12 @@
           inset 0 -1px 0 rgba(255, 255, 255, 0.025);
       }
       .cell.preview-ok {
-        outline: 2px solid rgba(115, 231, 145, 0.7);
+        outline: 2px solid rgba(115, 231, 145, 0.9);
+        background: rgba(115, 231, 145, 0.12);
       }
       .cell.preview-bad {
-        outline: 2px solid rgba(255, 113, 128, 0.55);
+        outline: 2px solid rgba(255, 113, 128, 0.8);
+        background: rgba(255, 113, 128, 0.12);
       }
       .cube {
         position: absolute;
@@ -293,7 +295,7 @@
       </div>
       <div class="controls">
         <button class="btn gray" id="newGame">NEW GAME</button
-        ><button class="btn" id="shuffle">NEW PIECES</button>
+        ><button class="btn" id="rotate">ROTATE ↻</button>
       </div>
       <div class="message" id="gameOver">
         <h2>GAME OVER</h2>
@@ -301,7 +303,8 @@
         <button class="btn" id="again">PLAY AGAIN</button>
       </div>
       <div class="legend">
-        5+ connected blocks of one color = clear • only side connections count
+        5+ connected same-color blocks = clear • sides only • tap selected piece
+        again or ROTATE to turn it
       </div>
     </div>
     <div class="combo" id="combo"></div>
@@ -394,6 +397,26 @@
           minY = Math.min(...shape.map((p) => p[1]));
         return shape.map(([x, y]) => [x - minX, y - minY]);
       }
+      function rotateShape(shape) {
+        // 90° clockwise around origin, then normalize back to top-left.
+        const rotated = shape.map(([x, y]) => [-y, x]);
+        return normalizeShape(rotated);
+      }
+
+      function rotateSelected() {
+        if (selected < 0 || gameEnded) {
+          $("status").textContent = "Спочатку обери фігуру";
+          return;
+        }
+
+        const p = pieces[selected];
+        if (p.used) return;
+
+        p.shape = rotateShape(p.shape);
+        clearPreview();
+        renderPieces();
+        $("status").textContent = "Фігуру повернуто на 90°";
+      }
 
       function makePiece() {
         const shape = normalizeShape(rnd(SHAPES));
@@ -411,6 +434,7 @@
       function refillPieces() {
         pieces = [makePiece(), makePiece(), makePiece()];
         selected = -1;
+        clearPreview();
         renderPieces();
         checkGameOver();
       }
@@ -421,26 +445,97 @@
         $("best").textContent = best;
       }
 
-      function renderBoard(preview = null) {
+      let currentPreview = null;
+
+      function clearPreview() {
+        document.querySelectorAll("#board .cell").forEach((c) => {
+          c.classList.remove("preview-ok", "preview-bad");
+        });
+        currentPreview = null;
+      }
+
+      function previewAt(x, y) {
+        if (selected < 0 || !pieces[selected] || pieces[selected].used) {
+          clearPreview();
+          return;
+        }
+
+        clearPreview();
+
+        const p = pieces[selected];
+        const ok = canPlace(p, x, y);
+        const cells = [];
+
+        p.shape.forEach(([dx, dy]) => {
+          const px = x + dx,
+            py = y + dy;
+          cells.push({ x: px, y: py });
+
+          // Only highlight in-bounds cells.
+          if (px >= 0 && px < SIZE && py >= 0 && py < SIZE) {
+            const cell = document.querySelector(
+              `#board .cell[data-x="${px}"][data-y="${py}"]`,
+            );
+            if (cell) cell.classList.add(ok ? "preview-ok" : "preview-bad");
+          }
+        });
+
+        currentPreview = { cells, ok, ox: x, oy: y };
+      }
+
+      function renderBoard() {
         const el = $("board");
         el.innerHTML = "";
+
         for (let y = 0; y < SIZE; y++)
           for (let x = 0; x < SIZE; x++) {
             const c = document.createElement("div");
             c.className = "cell";
-            if (preview) {
-              const hit = preview.cells.find((p) => p.x === x && p.y === y);
-              if (hit)
-                c.classList.add(preview.ok ? "preview-ok" : "preview-bad");
-            }
+            c.dataset.x = x;
+            c.dataset.y = y;
+
             if (board[y][x]) {
               const b = document.createElement("div");
               b.className = `cube ${board[y][x]}`;
               c.appendChild(b);
             }
-            c.onclick = () => placeSelected(x, y);
+
+            c.addEventListener("mouseenter", () => {
+              if (selected >= 0) previewAt(x, y);
+            });
+
+            c.addEventListener("click", () => {
+              if (selected < 0) return;
+              placeSelected(x, y);
+            });
+
+            // Mobile: first touch previews, release places.
+            c.addEventListener(
+              "touchstart",
+              (e) => {
+                if (selected < 0) return;
+                e.preventDefault();
+                previewAt(x, y);
+              },
+              { passive: false },
+            );
+
+            c.addEventListener(
+              "touchend",
+              (e) => {
+                if (selected < 0) return;
+                e.preventDefault();
+                placeSelected(x, y);
+              },
+              { passive: false },
+            );
+
             el.appendChild(c);
           }
+
+        el.onmouseleave = () => {
+          if (selected >= 0) clearPreview();
+        };
       }
 
       function renderPieces() {
@@ -469,9 +564,14 @@
           card.appendChild(g);
           card.onclick = () => {
             if (!p.used) {
+              if (selected === i) {
+                rotateSelected();
+                return;
+              }
               selected = i;
+              clearPreview();
               renderPieces();
-              $("status").textContent = "Тепер вибери місце на полі";
+              $("status").textContent = "Наведи на поле або тапни клітинку";
             }
           };
           box.appendChild(card);
@@ -488,19 +588,32 @@
 
       function placeSelected(x, y) {
         if (gameEnded || selected < 0) return;
+
         const p = pieces[selected];
+
         if (p.used || !canPlace(p, x, y)) {
           $("status").textContent = "Сюди фігура не влазить";
+          previewAt(x, y);
           return;
         }
-        p.shape.forEach(([dx, dy], i) => (board[y + dy][x + dx] = p.colors[i]));
+
+        p.shape.forEach(([dx, dy], i) => {
+          board[y + dy][x + dx] = p.colors[i];
+        });
+
         p.used = true;
         selected = -1;
+        clearPreview();
         score += p.shape.length * 2;
+
         resolveClears();
         render();
-        if (pieces.every((q) => q.used)) setTimeout(refillPieces, 180);
-        else checkGameOver();
+
+        if (pieces.every((q) => q.used)) {
+          setTimeout(refillPieces, 180);
+        } else {
+          checkGameOver();
+        }
       }
 
       function neighbors(x, y) {
@@ -598,6 +711,7 @@
         board = emptyBoard();
         score = 0;
         selected = -1;
+        currentPreview = null;
         gameEnded = false;
         $("gameOver").classList.remove("show");
         $("status").textContent = "Обери фігуру і постав її на поле";
@@ -607,11 +721,7 @@
 
       $("newGame").onclick = newGame;
       $("again").onclick = newGame;
-      $("shuffle").onclick = () => {
-        if (gameEnded) return;
-        refillPieces();
-        $("status").textContent = "Новий набір фігур";
-      };
+      $("rotate").onclick = rotateSelected;
       newGame();
     </script>
   </body>
