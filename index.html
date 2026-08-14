@@ -6,81 +6,75 @@
       name="viewport"
       content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no"
     />
-    <title>Color Shapes — Endless Prototype</title>
+    <title>Color Shapes — Vertical Slice</title>
     <style>
       :root {
         --bg1: #263a60;
         --bg2: #11192b;
-        --panel: #18243a;
-        --cell: #0a1323;
-        --txt: #fff;
+        --cell: #091321;
         --muted: #91a0bf;
-        --good: #72e791;
         --gold: #ffd45d;
-        --bad: #ff7180;
       }
       * {
         box-sizing: border-box;
         user-select: none;
         -webkit-tap-highlight-color: transparent;
       }
+      html,
+      body {
+        touch-action: none;
+      }
       body {
         margin: 0;
         min-height: 100vh;
         display: grid;
         place-items: center;
+        overflow: hidden;
         background: radial-gradient(
           circle at 50% 7%,
           var(--bg1),
-          var(--bg2) 50%,
+          var(--bg2) 52%,
           #080d16
         );
-        color: var(--txt);
-        font-family:
-          Inter,
-          system-ui,
-          -apple-system,
-          BlinkMacSystemFont,
-          "Segoe UI",
-          sans-serif;
+        color: #fff;
+        font-family: Inter, system-ui, sans-serif;
       }
       .app {
         width: min(96vw, 470px);
-        padding: 14px 14px 24px;
+        padding: 12px 12px 18px;
+        position: relative;
       }
       .header {
         display: grid;
         grid-template-columns: 1fr auto 1fr;
         align-items: center;
-        margin-bottom: 10px;
+        margin-bottom: 9px;
       }
       .scoreBox small,
       .bestBox small {
         display: block;
         color: var(--muted);
-        font-size: 10px;
-        letter-spacing: 0.15em;
+        font-size: 9px;
+        letter-spacing: 0.16em;
       }
       .scoreBox strong,
       .bestBox strong {
-        font-size: 23px;
+        font-size: 24px;
       }
       .bestBox {
         text-align: right;
       }
       .title {
         text-align: center;
-        font-weight: 900;
+        font-weight: 1000;
         font-size: 15px;
-        letter-spacing: 0.06em;
+        letter-spacing: 0.08em;
       }
       .boardWrap {
         background: linear-gradient(#1d2a45, #141e33);
-        padding: 11px;
+        padding: 10px;
         border-radius: 24px;
-        box-shadow:
-          inset 0 2px 0 rgba(255, 255, 255, 0.05),
-          0 24px 55px rgba(0, 0, 0, 0.34);
+        box-shadow: 0 24px 55px rgba(0, 0, 0, 0.36);
       }
       .board {
         display: grid;
@@ -92,30 +86,76 @@
         position: relative;
         border-radius: 8px;
         background: var(--cell);
-        box-shadow:
-          inset 0 2px 5px rgba(0, 0, 0, 0.52),
-          inset 0 -1px 0 rgba(255, 255, 255, 0.025);
+        box-shadow: inset 0 2px 5px rgba(0, 0, 0, 0.55);
       }
       .cell.preview-ok {
-        outline: 2px solid rgba(115, 231, 145, 0.9);
-        background: rgba(115, 231, 145, 0.12);
+        outline: 2px solid rgba(115, 231, 145, 0.95);
+        background: rgba(115, 231, 145, 0.14);
       }
       .cell.preview-bad {
-        outline: 2px solid rgba(255, 113, 128, 0.8);
-        background: rgba(255, 113, 128, 0.12);
+        outline: 2px solid rgba(255, 113, 128, 0.9);
+        background: rgba(255, 113, 128, 0.13);
+      }
+      .cell.preview-clear {
+        box-shadow:
+          inset 0 0 0 2px rgba(255, 212, 93, 0.9),
+          0 0 14px rgba(255, 212, 93, 0.22);
       }
       .cube {
         position: absolute;
         inset: 3px;
         border-radius: 7px;
         box-shadow:
-          inset 0 -5px 0 rgba(0, 0, 0, 0.16),
-          inset 0 2px 0 rgba(255, 255, 255, 0.22),
-          0 3px 7px rgba(0, 0, 0, 0.25);
-        transform: scale(1);
-        transition:
-          transform 0.13s ease,
-          opacity 0.16s ease;
+          inset 0 -5px 0 rgba(0, 0, 0, 0.17),
+          inset 0 2px 0 rgba(255, 255, 255, 0.23),
+          0 3px 7px rgba(0, 0, 0, 0.26);
+      }
+      .cube.spawn {
+        animation: settle 0.24s cubic-bezier(0.2, 0.9, 0.2, 1.2);
+      }
+      .cube.clearReady {
+        animation: clearReady 0.24s ease infinite alternate;
+      }
+      .cube.pop {
+        animation: pop 0.38s cubic-bezier(0.2, 0.8, 0.2, 1) forwards;
+      }
+      .cube.wave1 {
+        animation-delay: 0.02s;
+      }
+      .cube.wave2 {
+        animation-delay: 0.05s;
+      }
+      .cube.wave3 {
+        animation-delay: 0.08s;
+      }
+      .cube.wave4 {
+        animation-delay: 0.11s;
+      }
+      .cube.wave5 {
+        animation-delay: 0.14s;
+      }
+      @keyframes settle {
+        0% {
+          transform: scale(0.55) translateY(-6px);
+          opacity: 0.35;
+        }
+        65% {
+          transform: scale(1.1) translateY(1px);
+          opacity: 1;
+        }
+        100% {
+          transform: scale(1) translateY(0);
+          opacity: 1;
+        }
+      }
+      @keyframes pop {
+        55% {
+          transform: scale(1.18);
+        }
+        100% {
+          transform: scale(0.15);
+          opacity: 0;
+        }
       }
       .R {
         background: #d32f2f;
@@ -136,26 +176,25 @@
         background: #7b1fa2;
       }
       .status {
-        height: 36px;
+        height: 34px;
         text-align: center;
-        padding-top: 10px;
+        padding-top: 9px;
         font-weight: 900;
-        font-size: 14px;
-        color: var(--gold);
+        font-size: 13px;
+        color: #a9b8d4;
       }
       .piecesPanel {
-        margin-top: 10px;
-        padding: 10px;
+        margin-top: 8px;
+        padding: 9px;
         border-radius: 20px;
         background: #172137;
-        box-shadow: 0 14px 30px rgba(0, 0, 0, 0.28);
       }
       .piecesTitle {
         text-align: center;
         color: var(--muted);
-        font-size: 10px;
-        letter-spacing: 0.16em;
-        margin-bottom: 9px;
+        font-size: 9px;
+        letter-spacing: 0.18em;
+        margin-bottom: 8px;
       }
       .pieces {
         display: grid;
@@ -163,32 +202,32 @@
         gap: 8px;
       }
       .pieceCard {
-        position: relative;
-        min-height: 104px;
+        min-height: 94px;
         border-radius: 15px;
         background: #0c1526;
         display: grid;
         place-items: center;
-        cursor: pointer;
-        box-shadow:
-          inset 0 2px 6px rgba(0, 0, 0, 0.55),
-          inset 0 1px 0 rgba(255, 255, 255, 0.04);
+        cursor: grab;
+        box-shadow: inset 0 2px 6px rgba(0, 0, 0, 0.55);
+        transition: 0.12s;
       }
       .pieceCard.selected {
         outline: 2px solid #72aef2;
         background: #101c31;
+        transform: translateY(-2px);
       }
       .pieceCard.used {
-        opacity: 0.18;
+        opacity: 0.15;
         pointer-events: none;
       }
       .pieceGrid {
         display: grid;
         gap: 3px;
+        pointer-events: none;
       }
       .pc {
-        width: 24px;
-        height: 24px;
+        width: 23px;
+        height: 23px;
         border-radius: 6px;
         box-shadow:
           inset 0 -4px 0 rgba(0, 0, 0, 0.14),
@@ -197,82 +236,226 @@
       .pc.empty {
         visibility: hidden;
       }
-      .controls {
+      .actions {
         display: grid;
         grid-template-columns: 1fr 1fr;
         gap: 8px;
-        margin-top: 9px;
+        margin-top: 8px;
       }
       .btn {
         border: 0;
         border-radius: 14px;
-        padding: 13px;
+        padding: 12px;
         background: #2e619b;
         color: #fff;
         font-weight: 900;
-        font-size: 13px;
-        cursor: pointer;
+        font-size: 12px;
       }
       .btn.gray {
         background: #303a50;
       }
-      .message {
+      .dragGhost {
+        position: fixed;
+        z-index: 1000;
+        pointer-events: none;
         display: none;
-        margin-top: 10px;
-        padding: 16px;
-        border-radius: 18px;
-        background: #101a2b;
-        text-align: center;
-        box-shadow: 0 14px 35px rgba(0, 0, 0, 0.3);
+        filter: drop-shadow(0 10px 18px rgba(0, 0, 0, 0.4));
+        transform: translate(-50%, -65%) scale(1.05);
       }
-      .message.show {
+      .dragGhost.show {
         display: block;
       }
-      .message h2 {
-        margin: 0 0 6px;
-        font-size: 24px;
+      .ghostGrid {
+        display: grid;
+        gap: 4px;
       }
-      .message p {
-        margin: 0 0 12px;
-        color: #a9b4ce;
+      .gc {
+        width: 31px;
+        height: 31px;
+        border-radius: 8px;
+        box-shadow:
+          inset 0 -5px 0 rgba(0, 0, 0, 0.15),
+          inset 0 2px 0 rgba(255, 255, 255, 0.22);
+      }
+      .gc.empty {
+        visibility: hidden;
       }
       .combo {
         position: fixed;
         left: 50%;
-        top: 28%;
+        top: 30%;
         transform: translate(-50%, -50%) scale(0.7);
-        font-size: 30px;
+        font-size: 32px;
         font-weight: 1000;
         opacity: 0;
         pointer-events: none;
         z-index: 999;
-        text-shadow: 0 5px 16px rgba(0, 0, 0, 0.5);
+        text-shadow: 0 6px 18px rgba(0, 0, 0, 0.55);
       }
       .combo.show {
-        animation: combo 0.7s ease;
+        animation: combo 0.78s ease;
       }
       @keyframes combo {
+        20% {
+          opacity: 1;
+          transform: translate(-50%, -50%) scale(1.15);
+        }
+        72% {
+          opacity: 1;
+        }
+        100% {
+          opacity: 0;
+          transform: translate(-50%, -68%) scale(1);
+        }
+      }
+
+      .scorePopup {
+        position: fixed;
+        left: 50%;
+        top: 22%;
+        transform: translate(-50%, -50%) scale(0.8);
+        z-index: 1100;
+        pointer-events: none;
+        font-weight: 1000;
+        font-size: 34px;
+        opacity: 0;
+        text-shadow: 0 6px 18px rgba(0, 0, 0, 0.55);
+      }
+      .scorePopup.show {
+        animation: scorePop 0.9s ease;
+      }
+      @keyframes scorePop {
         0% {
           opacity: 0;
-          transform: translate(-50%, -50%) scale(0.7);
+          transform: translate(-50%, -35%) scale(0.7);
         }
-        25% {
+        18% {
           opacity: 1;
-          transform: translate(-50%, -50%) scale(1.12);
+          transform: translate(-50%, -50%) scale(1.2);
+        }
+        72% {
+          opacity: 1;
+        }
+        100% {
+          opacity: 0;
+          transform: translate(-50%, -75%) scale(0.95);
+        }
+      }
+      .badge {
+        position: fixed;
+        left: 50%;
+        top: 38%;
+        transform: translate(-50%, -50%) scale(0.7);
+        z-index: 1090;
+        pointer-events: none;
+        padding: 8px 16px;
+        border-radius: 999px;
+        background: rgba(13, 23, 39, 0.9);
+        box-shadow: 0 10px 28px rgba(0, 0, 0, 0.4);
+        font-weight: 1000;
+        font-size: 18px;
+        opacity: 0;
+      }
+      .badge.show {
+        animation: badge 0.9s ease;
+      }
+      @keyframes badge {
+        0% {
+          opacity: 0;
+          transform: translate(-50%, -35%) scale(0.7);
+        }
+        20% {
+          opacity: 1;
+          transform: translate(-50%, -50%) scale(1.08);
         }
         75% {
           opacity: 1;
         }
         100% {
           opacity: 0;
-          transform: translate(-50%, -65%) scale(1);
+          transform: translate(-50%, -65%) scale(0.95);
         }
       }
-      .legend {
-        margin-top: 8px;
+      .particle {
+        position: fixed;
+        width: 8px;
+        height: 8px;
+        border-radius: 3px;
+        z-index: 1050;
+        pointer-events: none;
+        box-shadow: 0 2px 5px rgba(0, 0, 0, 0.25);
+      }
+      .shake {
+        animation: shake 0.22s ease;
+      }
+      @keyframes shake {
+        0%,
+        100% {
+          transform: translate(0, 0);
+        }
+        20% {
+          transform: translate(-4px, 2px);
+        }
+        40% {
+          transform: translate(4px, -2px);
+        }
+        60% {
+          transform: translate(-3px, -1px);
+        }
+        80% {
+          transform: translate(3px, 1px);
+        }
+      }
+
+      .gameOver {
+        position: absolute;
+        inset: 0;
+        display: none;
+        place-items: center;
+        z-index: 1200;
+        background: rgba(5, 9, 17, 0.74);
+        backdrop-filter: blur(8px);
+        border-radius: 24px;
+      }
+      .gameOver.show {
+        display: grid;
+      }
+      .gameCard {
+        width: min(88%, 330px);
+        padding: 24px;
+        border-radius: 24px;
         text-align: center;
-        color: #7485aa;
-        font-size: 10px;
+        background: linear-gradient(#1e2b45, #111a2c);
+        box-shadow: 0 25px 70px rgba(0, 0, 0, 0.5);
+      }
+      .gameCard h2 {
+        margin: 8px 0 2px;
+        font-size: 34px;
+      }
+      .gameCard .final {
+        font-size: 18px;
+        color: #ffd45d;
+        font-weight: 900;
+        margin: 10px 0 2px;
+      }
+      .gameCard .best {
+        color: #9fb2d4;
+        margin-bottom: 17px;
+      }
+      .playAgain {
+        width: 100%;
+        border: 0;
+        border-radius: 16px;
+        padding: 14px;
+        background: #39a95f;
+        color: #fff;
+        font-weight: 1000;
+      }
+      .hint {
+        text-align: center;
+        margin-top: 6px;
+        color: #7183a7;
+        font-size: 9px;
       }
     </style>
   </head>
@@ -288,143 +471,218 @@
         </div>
       </div>
       <div class="boardWrap"><div class="board" id="board"></div></div>
-      <div class="status" id="status">Обери фігуру і постав її на поле</div>
+      <div class="status" id="status">
+        Тап = повернути 90° • потягни = поставити
+      </div>
       <div class="piecesPanel">
-        <div class="piecesTitle">CHOOSE A PIECE</div>
+        <div class="piecesTitle">YOUR PIECES</div>
         <div class="pieces" id="pieces"></div>
       </div>
-      <div class="controls">
-        <button class="btn gray" id="newGame">NEW GAME</button
-        ><button class="btn" id="rotate">ROTATE ↻</button>
+      <div class="actions" style="grid-template-columns: 1fr">
+        <button class="btn gray" id="restart">RESTART</button>
       </div>
-      <div class="message" id="gameOver">
-        <h2>GAME OVER</h2>
-        <p id="gameOverText"></p>
-        <button class="btn" id="again">PLAY AGAIN</button>
+      <div class="hint">
+        тап = +90° • drag = поставити • 5+ = clear • chain clears = COMBO
       </div>
-      <div class="legend">
-        5+ connected same-color blocks = clear • sides only • tap selected piece
-        again or ROTATE to turn it
+      <div class="scorePopup" id="scorePopup"></div>
+      <div class="badge" id="badge"></div>
+      <div class="gameOver" id="gameOver">
+        <div class="gameCard">
+          <small>GAME OVER</small>
+          <h2 id="goScore">0</h2>
+          <div class="final" id="goText"></div>
+          <div class="best" id="goBest"></div>
+          <button class="playAgain" id="playAgain">PLAY AGAIN</button>
+        </div>
       </div>
+    </div>
+    <div class="dragGhost" id="dragGhost">
+      <div class="ghostGrid" id="ghostGrid"></div>
     </div>
     <div class="combo" id="combo"></div>
     <script>
-      const SIZE = 8;
-      const COLORS = ["R", "O", "Y", "G", "B", "P"];
-      const SHAPES = [
-        [
-          [0, 0],
-          [1, 0],
-        ],
-        [
-          [0, 0],
-          [0, 1],
-        ],
-        [
-          [0, 0],
-          [1, 0],
-          [2, 0],
-        ],
-        [
-          [0, 0],
-          [0, 1],
-          [0, 2],
-        ],
-        [
-          [0, 0],
-          [1, 0],
-          [0, 1],
-        ],
-        [
-          [0, 0],
-          [1, 0],
-          [1, 1],
-        ],
-        [
-          [0, 0],
-          [0, 1],
-          [1, 1],
-        ],
-        [
-          [0, 0],
-          [1, 0],
-          [2, 0],
-          [1, 1],
-        ],
-        [
-          [0, 0],
-          [1, 0],
-          [0, 1],
-          [1, 1],
-        ],
-        [
-          [0, 0],
-          [1, 0],
-          [2, 0],
-          [2, 1],
-        ],
-        [
-          [0, 0],
-          [0, 1],
-          [0, 2],
-          [1, 2],
-        ],
-        [
-          [0, 0],
-          [1, 0],
-          [1, 1],
-          [2, 1],
-        ],
-      ];
+      const SIZE = 8,
+        COLORS = ["R", "O", "Y", "G", "B", "P"],
+        SHAPES = [
+          [
+            [0, 0],
+            [1, 0],
+          ],
+          [
+            [0, 0],
+            [0, 1],
+          ],
+          [
+            [0, 0],
+            [1, 0],
+            [2, 0],
+          ],
+          [
+            [0, 0],
+            [0, 1],
+            [0, 2],
+          ],
+          [
+            [0, 0],
+            [1, 0],
+            [0, 1],
+          ],
+          [
+            [0, 0],
+            [1, 0],
+            [1, 1],
+          ],
+          [
+            [0, 0],
+            [0, 1],
+            [1, 1],
+          ],
+          [
+            [0, 0],
+            [1, 0],
+            [2, 0],
+            [1, 1],
+          ],
+          [
+            [0, 0],
+            [1, 0],
+            [0, 1],
+            [1, 1],
+          ],
+          [
+            [0, 0],
+            [1, 0],
+            [2, 0],
+            [2, 1],
+          ],
+          [
+            [0, 0],
+            [0, 1],
+            [0, 2],
+            [1, 2],
+          ],
+          [
+            [0, 0],
+            [1, 0],
+            [1, 1],
+            [2, 1],
+          ],
+        ];
       let board = [],
         score = 0,
-        best = Number(localStorage.getItem("colorShapesBest") || 0);
-      let pieces = [],
+        best = Number(localStorage.getItem("colorShapesBest") || 0),
+        pieces = [],
         selected = -1,
         gameEnded = false,
-        chain = 0;
-      const $ = (id) => document.getElementById(id);
+        dragging = false,
+        dragPointerId = null,
+        dragPieceIndex = -1,
+        currentDrop = null,
+        spawnedCells = new Set();
+      const $ = (id) => document.getElementById(id),
+        boardEl = $("board"),
+        ghost = $("dragGhost"),
+        ghostGrid = $("ghostGrid");
       $("best").textContent = best;
-
+      function haptic(v = 18) {
+        if (navigator.vibrate) navigator.vibrate(v);
+      }
+      function rnd(a) {
+        return a[Math.floor(Math.random() * a.length)];
+      }
       function emptyBoard() {
         return Array.from({ length: SIZE }, () => Array(SIZE).fill(null));
       }
-      function rnd(arr) {
-        return arr[Math.floor(Math.random() * arr.length)];
+      function normalizeShape(s) {
+        const mx = Math.min(...s.map((p) => p[0])),
+          my = Math.min(...s.map((p) => p[1]));
+        return s.map(([x, y]) => [x - mx, y - my]);
       }
-      function normalizeShape(shape) {
-        const minX = Math.min(...shape.map((p) => p[0])),
-          minY = Math.min(...shape.map((p) => p[1]));
-        return shape.map(([x, y]) => [x - minX, y - minY]);
-      }
-      function rotateShape(shape) {
-        // 90° clockwise around origin, then normalize back to top-left.
-        const rotated = shape.map(([x, y]) => [-y, x]);
-        return normalizeShape(rotated);
+      function rotateShape(s) {
+        return normalizeShape(s.map(([x, y]) => [-y, x]));
       }
 
-      function rotateSelected() {
-        if (selected < 0 || gameEnded) {
-          $("status").textContent = "Спочатку обери фігуру";
-          return;
+      function countOccupied() {
+        return board.flat().filter(Boolean).length;
+      }
+      function sizeLabel(n) {
+        if (n >= 12) return "MASSIVE!";
+        if (n >= 9) return "AWESOME!";
+        if (n >= 7) return "GREAT!";
+        if (n === 6) return "NICE!";
+        return "CLEAR";
+      }
+      function sizeBaseScore(n) {
+        if (n <= 5) return 50;
+        if (n === 6) return 70;
+        if (n === 7) return 100;
+        if (n === 8) return 140;
+        if (n === 9) return 180;
+        if (n === 10) return 230;
+        if (n === 11) return 290;
+        return 350 + (n - 12) * 80;
+      }
+      function showScorePopup(text) {
+        const el = $("scorePopup");
+        el.textContent = text;
+        el.className = "scorePopup show";
+        setTimeout(() => (el.className = "scorePopup"), 920);
+      }
+      function showBadge(text) {
+        const el = $("badge");
+        el.textContent = text;
+        el.className = "badge show";
+        setTimeout(() => (el.className = "badge"), 920);
+      }
+      function spawnParticles(cells, color) {
+        const max = Math.min(32, cells.length * 4);
+        for (let i = 0; i < max; i++) {
+          const [x, y] = cells[i % cells.length];
+          const cell = boardEl.querySelector(
+            `.cell[data-x="${x}"][data-y="${y}"]`,
+          );
+          if (!cell) continue;
+          const r = cell.getBoundingClientRect();
+          const p = document.createElement("div");
+          p.className = `particle ${color}`;
+          p.style.left = r.left + r.width / 2 - 4 + "px";
+          p.style.top = r.top + r.height / 2 - 4 + "px";
+          document.body.appendChild(p);
+          const a = Math.random() * Math.PI * 2;
+          const dist = 20 + Math.random() * 42;
+          const dx = Math.cos(a) * dist,
+            dy = Math.sin(a) * dist;
+          p.animate(
+            [
+              { transform: "translate(0,0) scale(1)", opacity: 1 },
+              {
+                transform: `translate(${dx}px,${dy}px) scale(.25)`,
+                opacity: 0,
+              },
+            ],
+            {
+              duration: 420 + Math.random() * 180,
+              easing: "cubic-bezier(.2,.8,.2,1)",
+            },
+          );
+          setTimeout(() => p.remove(), 650);
         }
-
-        const p = pieces[selected];
-        if (p.used) return;
-
-        p.shape = rotateShape(p.shape);
-        clearPreview();
-        renderPieces();
-        $("status").textContent = "Фігуру повернуто на 90°";
+      }
+      function boardShake() {
+        const app = document.querySelector(".app");
+        app.classList.remove("shake");
+        void app.offsetWidth;
+        app.classList.add("shake");
+        setTimeout(() => app.classList.remove("shake"), 260);
       }
 
       function makePiece() {
-        const shape = normalizeShape(rnd(SHAPES));
-        const palette = [rnd(COLORS)];
-        palette.push(rnd(COLORS.filter((c) => c !== palette[0])));
-        if (Math.random() < 0.12)
-          palette.push(rnd(COLORS.filter((c) => !palette.includes(c))));
-        const colors = shape.map((_, i) => palette[i % palette.length]);
+        const shape = normalizeShape(rnd(SHAPES).map((p) => [...p])),
+          pal = [rnd(COLORS)];
+        pal.push(rnd(COLORS.filter((c) => c !== pal[0])));
+        if (Math.random() < 0.1)
+          pal.push(rnd(COLORS.filter((c) => !pal.includes(c))));
+        const colors = shape.map((_, i) => pal[i % pal.length]);
         for (let i = colors.length - 1; i > 0; i--) {
           const j = Math.floor(Math.random() * (i + 1));
           [colors[i], colors[j]] = [colors[j], colors[i]];
@@ -434,8 +692,8 @@
       function refillPieces() {
         pieces = [makePiece(), makePiece(), makePiece()];
         selected = -1;
-        clearPreview();
         renderPieces();
+        setStatus("Тап = повернути • drag = поставити");
         checkGameOver();
       }
       function render() {
@@ -444,100 +702,42 @@
         $("score").textContent = score;
         $("best").textContent = best;
       }
-
-      let currentPreview = null;
-
-      function clearPreview() {
-        document.querySelectorAll("#board .cell").forEach((c) => {
-          c.classList.remove("preview-ok", "preview-bad");
-        });
-        currentPreview = null;
-      }
-
-      function previewAt(x, y) {
-        if (selected < 0 || !pieces[selected] || pieces[selected].used) {
-          clearPreview();
-          return;
-        }
-
-        clearPreview();
-
-        const p = pieces[selected];
-        const ok = canPlace(p, x, y);
-        const cells = [];
-
-        p.shape.forEach(([dx, dy]) => {
-          const px = x + dx,
-            py = y + dy;
-          cells.push({ x: px, y: py });
-
-          // Only highlight in-bounds cells.
-          if (px >= 0 && px < SIZE && py >= 0 && py < SIZE) {
-            const cell = document.querySelector(
-              `#board .cell[data-x="${px}"][data-y="${py}"]`,
-            );
-            if (cell) cell.classList.add(ok ? "preview-ok" : "preview-bad");
-          }
-        });
-
-        currentPreview = { cells, ok, ox: x, oy: y };
-      }
-
       function renderBoard() {
-        const el = $("board");
-        el.innerHTML = "";
-
+        boardEl.innerHTML = "";
         for (let y = 0; y < SIZE; y++)
           for (let x = 0; x < SIZE; x++) {
-            const c = document.createElement("div");
-            c.className = "cell";
-            c.dataset.x = x;
-            c.dataset.y = y;
-
+            const cell = document.createElement("div");
+            cell.className = "cell";
+            cell.dataset.x = x;
+            cell.dataset.y = y;
+            const key = `${x},${y}`;
             if (board[y][x]) {
-              const b = document.createElement("div");
-              b.className = `cube ${board[y][x]}`;
-              c.appendChild(b);
+              const cube = document.createElement("div");
+              cube.className = `cube ${board[y][x]}${spawnedCells.has(key) ? " spawn" : ""}`;
+              cell.appendChild(cube);
             }
-
-            c.addEventListener("mouseenter", () => {
-              if (selected >= 0) previewAt(x, y);
-            });
-
-            c.addEventListener("click", () => {
-              if (selected < 0) return;
-              placeSelected(x, y);
-            });
-
-            // Mobile: first touch previews, release places.
-            c.addEventListener(
-              "touchstart",
-              (e) => {
-                if (selected < 0) return;
-                e.preventDefault();
-                previewAt(x, y);
-              },
-              { passive: false },
-            );
-
-            c.addEventListener(
-              "touchend",
-              (e) => {
-                if (selected < 0) return;
-                e.preventDefault();
-                placeSelected(x, y);
-              },
-              { passive: false },
-            );
-
-            el.appendChild(c);
+            boardEl.appendChild(cell);
           }
-
-        el.onmouseleave = () => {
-          if (selected >= 0) clearPreview();
-        };
+        spawnedCells.clear();
       }
-
+      function renderGraphic(container, p, size, ghostMode = false) {
+        container.innerHTML = "";
+        const xs = p.shape.map((q) => q[0]),
+          ys = p.shape.map((q) => q[1]),
+          w = Math.max(...xs) + 1,
+          h = Math.max(...ys) + 1;
+        container.style.gridTemplateColumns = `repeat(${w},${size}px)`;
+        for (let yy = 0; yy < h; yy++)
+          for (let xx = 0; xx < w; xx++) {
+            const idx = p.shape.findIndex(([x, y]) => x === xx && y === yy),
+              q = document.createElement("div");
+            q.className =
+              idx >= 0
+                ? `${ghostMode ? "gc" : "pc"} ${p.colors[idx]}`
+                : `${ghostMode ? "gc" : "pc"} empty`;
+            container.appendChild(q);
+          }
+      }
       function renderPieces() {
         const box = $("pieces");
         box.innerHTML = "";
@@ -547,75 +747,51 @@
             "pieceCard" +
             (selected === i ? " selected" : "") +
             (p.used ? " used" : "");
-          const xs = p.shape.map((q) => q[0]),
-            ys = p.shape.map((q) => q[1]),
-            w = Math.max(...xs) + 1,
-            h = Math.max(...ys) + 1;
           const g = document.createElement("div");
           g.className = "pieceGrid";
-          g.style.gridTemplateColumns = `repeat(${w},24px)`;
-          for (let yy = 0; yy < h; yy++)
-            for (let xx = 0; xx < w; xx++) {
-              const idx = p.shape.findIndex(([x, y]) => x === xx && y === yy),
-                q = document.createElement("div");
-              q.className = idx >= 0 ? `pc ${p.colors[idx]}` : "pc empty";
-              g.appendChild(q);
-            }
+          renderGraphic(g, p, 23, false);
           card.appendChild(g);
           card.onclick = () => {
-            if (!p.used) {
-              if (selected === i) {
-                rotateSelected();
-                return;
-              }
-              selected = i;
-              clearPreview();
-              renderPieces();
-              $("status").textContent = "Наведи на поле або тапни клітинку";
-            }
+            if (p.used || gameEnded || dragging) return;
+            rotatePiece(i);
+          };
+          card.onpointerdown = (e) => {
+            if (p.used || gameEnded || resolving) return;
+            beginPiecePointer(i, e);
           };
           box.appendChild(card);
         });
       }
-
-      function canPlace(piece, ox, oy) {
-        return piece.shape.every(([dx, dy]) => {
+      function canPlace(p, ox, oy) {
+        return p.shape.every(([dx, dy]) => {
           const x = ox + dx,
             y = oy + dy;
           return x >= 0 && x < SIZE && y >= 0 && y < SIZE && !board[y][x];
         });
       }
-
-      function placeSelected(x, y) {
-        if (gameEnded || selected < 0) return;
-
-        const p = pieces[selected];
-
-        if (p.used || !canPlace(p, x, y)) {
-          $("status").textContent = "Сюди фігура не влазить";
-          previewAt(x, y);
-          return;
-        }
-
-        p.shape.forEach(([dx, dy], i) => {
-          board[y + dy][x + dx] = p.colors[i];
-        });
-
-        p.used = true;
-        selected = -1;
-        clearPreview();
-        score += p.shape.length * 2;
-
-        resolveClears();
-        render();
-
-        if (pieces.every((q) => q.used)) {
-          setTimeout(refillPieces, 180);
-        } else {
-          checkGameOver();
-        }
+      function boardCellFromPoint(cx, cy) {
+        const r = boardEl.getBoundingClientRect();
+        if (cx < r.left || cx > r.right || cy < r.top || cy > r.bottom)
+          return null;
+        return {
+          x: Math.min(
+            7,
+            Math.max(0, Math.floor((cx - r.left) / (r.width / SIZE))),
+          ),
+          y: Math.min(
+            7,
+            Math.max(0, Math.floor((cy - r.top) / (r.height / SIZE))),
+          ),
+        };
       }
-
+      function clearPreview() {
+        boardEl
+          .querySelectorAll(".cell")
+          .forEach((c) =>
+            c.classList.remove("preview-ok", "preview-bad", "preview-clear"),
+          );
+        currentDrop = null;
+      }
       function neighbors(x, y) {
         return [
           [x + 1, y],
@@ -624,14 +800,14 @@
           [x, y - 1],
         ].filter(([a, b]) => a >= 0 && a < SIZE && b >= 0 && b < SIZE);
       }
-      function findGroups() {
+      function findGroups(src = board) {
         const seen = Array.from({ length: SIZE }, () =>
             Array(SIZE).fill(false),
           ),
           groups = [];
         for (let y = 0; y < SIZE; y++)
           for (let x = 0; x < SIZE; x++) {
-            const color = board[y][x];
+            const color = src[y][x];
             if (!color || seen[y][x]) continue;
             const q = [[x, y]],
               group = [];
@@ -640,7 +816,7 @@
               const [cx, cy] = q.pop();
               group.push([cx, cy]);
               neighbors(cx, cy).forEach(([nx, ny]) => {
-                if (!seen[ny][nx] && board[ny][nx] === color) {
+                if (!seen[ny][nx] && src[ny][nx] === color) {
                   seen[ny][nx] = true;
                   q.push([nx, ny]);
                 }
@@ -650,78 +826,350 @@
           }
         return groups;
       }
-
-      function resolveClears() {
-        chain = 0;
-        let totalCleared = 0,
-          totalBonus = 0;
-        while (true) {
-          const groups = findGroups();
-          if (!groups.length) break;
-          chain++;
-          const unique = new Map();
-          groups.forEach((g) =>
-            g.cells.forEach(([x, y]) => unique.set(`${x},${y}`, [x, y])),
+      function previewPlacement(p, ox, oy) {
+        clearPreview();
+        const ok = canPlace(p, ox, oy);
+        p.shape.forEach(([dx, dy]) => {
+          const x = ox + dx,
+            y = oy + dy;
+          if (x < 0 || x >= SIZE || y < 0 || y >= SIZE) return;
+          const c = boardEl.querySelector(
+            `.cell[data-x="${x}"][data-y="${y}"]`,
           );
-          unique.forEach(([x, y]) => (board[y][x] = null));
-          const n = unique.size,
-            bonus = n * 10 * chain;
-          totalCleared += n;
-          totalBonus += bonus;
-          score += bonus;
+          if (c) c.classList.add(ok ? "preview-ok" : "preview-bad");
+        });
+        currentDrop = { x: ox, y: oy, ok };
+        if (ok) {
+          const temp = board.map((r) => [...r]);
+          p.shape.forEach(
+            ([dx, dy], i) => (temp[oy + dy][ox + dx] = p.colors[i]),
+          );
+          findGroups(temp).forEach((g) =>
+            g.cells.forEach(([x, y]) => {
+              const c = boardEl.querySelector(
+                `.cell[data-x="${x}"][data-y="${y}"]`,
+              );
+              if (c) c.classList.add("preview-clear");
+            }),
+          );
         }
-        if (totalCleared) {
-          const text =
-            chain > 1
-              ? `CHAIN x${chain} • +${totalBonus}`
-              : `CLEAR ${totalCleared} • +${totalBonus}`;
-          $("status").textContent = text;
-          const c = $("combo");
-          c.textContent = text;
-          c.className = "combo show";
-          setTimeout(() => (c.className = "combo"), 750);
-          if (score > best) {
-            best = score;
-            localStorage.setItem("colorShapesBest", best);
-          }
-        } else $("status").textContent = "Добре. Плануй наступний хід";
       }
+      function beginPiecePointer(i, e) {
+        e.preventDefault();
+        pressStart = { x: e.clientX, y: e.clientY, id: e.pointerId };
+        pressPiece = i;
+        dragPointerId = e.pointerId;
+      }
+      function startDragFromPress(cx, cy) {
+        if (pressPiece < 0) return;
+        dragging = true;
+        dragPieceIndex = pressPiece;
+        selected = dragPieceIndex;
+        renderPieces();
+        renderGraphic(ghostGrid, pieces[dragPieceIndex], 31, true);
+        ghost.classList.add("show");
+        updateDrag(cx, cy);
+      }
+      function updateDrag(cx, cy) {
+        if (!dragging) return;
+        ghost.style.left = cx + "px";
+        ghost.style.top = cy + "px";
+        const pos = boardCellFromPoint(cx, cy);
+        if (!pos) {
+          clearPreview();
+          return;
+        }
+        previewPlacement(pieces[dragPieceIndex], pos.x, pos.y);
+      }
+      function endDrag() {
+        if (!dragging) return;
+        const idx = dragPieceIndex,
+          drop = currentDrop ? { ...currentDrop } : null;
+        dragging = false;
+        dragPieceIndex = -1;
+        ghost.classList.remove("show");
+        clearPreview();
+        if (drop && drop.ok) placePiece(idx, drop.x, drop.y);
+        else {
+          setStatus("Не влазить — спробуй інше місце");
+          haptic(10);
+        }
+      }
+      window.addEventListener(
+        "pointermove",
+        (e) => {
+          if (!pressStart || e.pointerId !== pressStart.id) return;
+          const dx = e.clientX - pressStart.x,
+            dy = e.clientY - pressStart.y;
+          if (!dragging && Math.hypot(dx, dy) > 9)
+            startDragFromPress(e.clientX, e.clientY);
+          else if (dragging) updateDrag(e.clientX, e.clientY);
+        },
+        { passive: false },
+      );
+      window.addEventListener("pointerup", (e) => {
+        if (!pressStart || e.pointerId !== pressStart.id) return;
+        const i = pressPiece;
+        if (dragging) endDrag();
+        else rotatePiece(i);
+        pressStart = null;
+        pressPiece = -1;
+        dragPointerId = null;
+      });
+      window.addEventListener("pointercancel", () => {
+        if (dragging) {
+          dragging = false;
+          ghost.classList.remove("show");
+          clearPreview();
+        }
+        pressStart = null;
+        pressPiece = -1;
+        dragPointerId = null;
+      });
+      boardEl.addEventListener("pointermove", (e) => {
+        if (dragging || selected < 0 || gameEnded) return;
+        const pos = boardCellFromPoint(e.clientX, e.clientY);
+        if (pos) previewPlacement(pieces[selected], pos.x, pos.y);
+      });
+      boardEl.addEventListener("pointerleave", () => {
+        if (!dragging) clearPreview();
+      });
+      async function placePiece(i, ox, oy) {
+        const p = pieces[i];
+        if (!p || p.used || !canPlace(p, ox, oy) || resolving) return;
 
-      function anyPlacement(piece) {
-        for (let y = 0; y < SIZE; y++)
-          for (let x = 0; x < SIZE; x++) if (canPlace(piece, x, y)) return true;
-        return false;
+        resolving = true;
+        lastPlacedCells = [];
+
+        p.shape.forEach(([dx, dy], k) => {
+          const x = ox + dx,
+            y = oy + dy;
+          board[y][x] = p.colors[k];
+          spawnedCells.add(`${x},${y}`);
+          lastPlacedCells.push([x, y]);
+        });
+
+        p.used = true;
+        selected = -1;
+        score += p.shape.length * 2;
+        haptic(18);
+
+        // First show the placed piece.
+        renderBoard();
+        renderPieces();
+        $("score").textContent = score;
+        setStatus("PLACED");
+
+        await new Promise((r) => setTimeout(r, 180));
+
+        // Fully finish all clears BEFORE considering game over.
+        await resolveClears();
+
+        resolving = false;
+
+        // Refill if all 3 were used. Refill itself will check game over
+        // against the UPDATED board after the clear.
+        if (pieces.every((q) => q.used)) {
+          setTimeout(() => {
+            refillPieces();
+          }, 220);
+        } else {
+          renderPieces();
+          checkGameOver();
+        }
       }
-      function checkGameOver() {
-        if (gameEnded) return;
-        const available = pieces.filter((p) => !p.used);
-        if (!available.length) return;
-        if (available.some(anyPlacement)) return;
-        gameEnded = true;
+      function rotatePiece(i) {
+        const p = pieces[i];
+        if (!p || p.used) return;
+        p.shape = rotateShape(p.shape);
+        selected = -1;
+        clearPreview();
+        renderPieces();
+        setStatus("Повернуто на 90°");
+        haptic(8);
+      }
+      async function resolveClears() {
+        const groups = findGroups();
+
+        if (!groups.length) {
+          comboStreak = 0;
+          render();
+          setStatus("Плануй наступний хід");
+          return;
+        }
+
+        comboStreak++;
+
+        const unique = new Map();
+        groups.forEach((g) =>
+          g.cells.forEach(([x, y]) => unique.set(`${x},${y}`, [x, y])),
+        );
+        const cells = [...unique.values()];
+        const count = cells.length;
+        const colorCount = new Set(groups.map((g) => g.color)).size;
+
+        const clearedSet = new Set(cells.map(([x, y]) => `${x},${y}`));
+        const perfectPiece =
+          lastPlacedCells.length > 0 &&
+          lastPlacedCells.every(([x, y]) => clearedSet.has(`${x},${y}`));
+
+        // wave origin = center of cleared cells
+        const cx = cells.reduce((a, [x]) => a + x, 0) / cells.length;
+        const cy = cells.reduce((a, [, y]) => a + y, 0) / cells.length;
+        const ordered = [...cells].sort((a, b) => {
+          const da = Math.abs(a[0] - cx) + Math.abs(a[1] - cy);
+          const db = Math.abs(b[0] - cx) + Math.abs(b[1] - cy);
+          return da - db;
+        });
+
+        ordered.forEach(([x, y], idx) => {
+          const cube = boardEl.querySelector(
+            `.cell[data-x="${x}"][data-y="${y}"] .cube`,
+          );
+          if (cube) {
+            cube.classList.add("clearReady");
+            cube.dataset.wave = String(idx % 6);
+          }
+        });
+
+        const base = sizeBaseScore(count);
+        const multi = colorCount >= 3 ? 3 : colorCount === 2 ? 2 : 1;
+        const comboMult = 1 + Math.max(0, comboStreak - 1) * 0.25;
+        const perfectBonus = perfectPiece ? 100 : 0;
+
+        let clearScore = Math.round(base * multi * comboMult) + perfectBonus;
+
+        let headline = sizeLabel(count);
+        if (colorCount === 2) headline = "DOUBLE CLEAR";
+        if (colorCount >= 3) headline = "TRIPLE CLEAR";
+
+        setStatus(headline);
+
+        await new Promise((r) => setTimeout(r, 210));
+
+        ordered.forEach(([x, y], idx) => {
+          const cube = boardEl.querySelector(
+            `.cell[data-x="${x}"][data-y="${y}"] .cube`,
+          );
+          if (cube) {
+            cube.classList.remove("clearReady");
+            cube.classList.add("pop", `wave${Math.min(5, idx % 6)}`);
+          }
+        });
+
+        // particles per color group
+        groups.forEach((g) => spawnParticles(g.cells, g.color));
+
+        if (count >= 8 || colorCount >= 2) boardShake();
+
+        haptic(
+          count >= 12
+            ? [25, 25, 35, 25, 55]
+            : colorCount >= 2
+              ? [25, 35, 25]
+              : 28,
+        );
+
+        const combo = $("combo");
+        combo.textContent = headline;
+        combo.className = "combo show";
+
+        showScorePopup(`+${clearScore}`);
+
+        if (comboStreak >= 2) showBadge(`COMBO x${comboStreak}`);
+        if (perfectPiece)
+          setTimeout(() => showBadge("PERFECT PIECE +100"), 250);
+
+        await new Promise((r) => setTimeout(r, 360));
+
+        cells.forEach(([x, y]) => (board[y][x] = null));
+        score += clearScore;
+
+        const occupied = countOccupied();
+        let boardBonus = 0;
+
+        if (occupied === 0) {
+          boardBonus = 500;
+          score += boardBonus;
+          setTimeout(() => showBadge("PERFECT BOARD +500"), 380);
+        } else if (occupied <= 5) {
+          boardBonus = 150;
+          score += boardBonus;
+          setTimeout(() => showBadge("CLEAN +150"), 380);
+        }
+
+        const oldBest = best;
         if (score > best) {
           best = score;
           localStorage.setItem("colorShapesBest", best);
         }
+
+        render();
+        $("score").textContent = score;
         $("best").textContent = best;
-        $("gameOverText").textContent = `Score ${score} • Best ${best}`;
+
+        if (score > oldBest) {
+          setStatus("NEW BEST!");
+          setTimeout(() => showBadge("NEW BEST"), 520);
+        } else {
+          const parts = [headline];
+          if (comboStreak >= 2) parts.push(`COMBO x${comboStreak}`);
+          setStatus(parts.join(" • "));
+        }
+
+        setTimeout(() => (combo.className = "combo"), 850);
+      }
+      function anyPlacement(p) {
+        for (let y = 0; y < SIZE; y++)
+          for (let x = 0; x < SIZE; x++) if (canPlace(p, x, y)) return true;
+        return false;
+      }
+      function checkGameOver() {
+        // Important: never judge the board before a pending clear has finished.
+        if (gameEnded || resolving) return;
+
+        const available = pieces.filter((p) => !p.used);
+
+        // No pieces left means we're about to refill, not lose.
+        if (!available.length) return;
+
+        // If even one available piece fits somewhere, game continues.
+        if (available.some(anyPlacement)) return;
+
+        gameEnded = true;
+
+        if (score > best) {
+          best = score;
+          localStorage.setItem("colorShapesBest", best);
+        }
+
+        $("best").textContent = best;
+        $("goScore").textContent = score;
+        $("goText").textContent = score >= best ? "NEW BEST" : "";
+        $("goBest").textContent = `BEST ${best}`;
         $("gameOver").classList.add("show");
-        $("status").textContent = "Жодна доступна фігура більше не влазить";
+        haptic([35, 45, 70]);
+      }
+      function setStatus(t) {
+        $("status").textContent = t;
       }
       function newGame() {
         board = emptyBoard();
         score = 0;
         selected = -1;
-        currentPreview = null;
         gameEnded = false;
+        resolving = false;
+        dragging = false;
+        comboStreak = 0;
+        lastPlacedCells = [];
+        clearPreview();
         $("gameOver").classList.remove("show");
-        $("status").textContent = "Обери фігуру і постав її на поле";
+        $("score").textContent = 0;
+        renderBoard();
         refillPieces();
-        render();
       }
-
-      $("newGame").onclick = newGame;
-      $("again").onclick = newGame;
-      $("rotate").onclick = rotateSelected;
+      $("restart").onclick = newGame;
+      $("playAgain").onclick = newGame;
       newGame();
     </script>
   </body>
