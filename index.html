@@ -481,6 +481,33 @@
       <div class="actions" style="grid-template-columns: 1fr">
         <button class="btn gray" id="restart">RESTART</button>
       </div>
+      <button
+        id="debugToggle"
+        style="
+          width: 100%;
+          margin-top: 6px;
+          border: 0;
+          background: transparent;
+          color: #66789b;
+          font-size: 9px;
+        "
+      >
+        DEBUG
+      </button>
+      <div
+        id="debug"
+        style="
+          display: none;
+          margin-top: 6px;
+          padding: 8px;
+          border-radius: 10px;
+          background: #0b1423;
+          color: #91a0bf;
+          font:
+            10px ui-monospace,
+            monospace;
+        "
+      ></div>
       <div class="hint">
         тап = +90° • drag = поставити • 5+ = clear • chain clears = COMBO
       </div>
@@ -676,21 +703,69 @@
         setTimeout(() => app.classList.remove("shake"), 260);
       }
 
-      function makePiece() {
-        const shape = normalizeShape(rnd(SHAPES).map((p) => [...p])),
-          pal = [rnd(COLORS)];
-        pal.push(rnd(COLORS.filter((c) => c !== pal[0])));
-        if (Math.random() < 0.1)
-          pal.push(rnd(COLORS.filter((c) => !pal.includes(c))));
-        const colors = shape.map((_, i) => pal[i % pal.length]);
+      function difficultyProfile() {
+        const s = score;
+        if (s < 400)
+          return { tier: "CALM", colors: 4, maxSize: 3, hardChance: 0.1 };
+        if (s < 1200)
+          return { tier: "FLOW", colors: 5, maxSize: 3, hardChance: 0.2 };
+        if (s < 2500)
+          return { tier: "PRESSURE", colors: 5, maxSize: 4, hardChance: 0.38 };
+        return { tier: "ENDLESS", colors: 6, maxSize: 4, hardChance: 0.55 };
+      }
+      function shapePoolFor(profile) {
+        return SHAPES.filter((sh) => {
+          if (sh.length > profile.maxSize) return false;
+          if (profile.maxSize < 4 && sh.length === 4) return false;
+          return true;
+        });
+      }
+      function makeControlledPiece() {
+        const profile = difficultyProfile();
+        const palette = COLORS.slice(0, profile.colors);
+        const pool = shapePoolFor(profile);
+        let shape = normalizeShape(rnd(pool).map((p) => [...p]));
+        if (Math.random() < profile.hardChance && profile.maxSize >= 4) {
+          const hard = SHAPES.filter((s) => s.length === 4);
+          if (hard.length) shape = normalizeShape(rnd(hard).map((p) => [...p]));
+        }
+        const local = [rnd(palette)];
+        local.push(rnd(palette.filter((c) => c !== local[0])));
+        if (Math.random() < 0.1 && palette.length >= 5) {
+          local.push(rnd(palette.filter((c) => !local.includes(c))));
+        }
+        const colors = shape.map((_, i) => local[i % local.length]);
         for (let i = colors.length - 1; i > 0; i--) {
           const j = Math.floor(Math.random() * (i + 1));
           [colors[i], colors[j]] = [colors[j], colors[i]];
         }
         return { shape, colors, used: false };
       }
+      function generatePieceSet() {
+        let set = [
+          makeControlledPiece(),
+          makeControlledPiece(),
+          makeControlledPiece(),
+        ];
+        // Fairness: if board isn't empty, try several sets until at least one fits.
+        if (board.flat().some(Boolean)) {
+          for (let tries = 0; tries < 12; tries++) {
+            if (set.some(anyPlacement)) break;
+            set = [
+              makeControlledPiece(),
+              makeControlledPiece(),
+              makeControlledPiece(),
+            ];
+          }
+        }
+        return set;
+      }
+
+      function makePiece() {
+        return makeControlledPiece();
+      }
       function refillPieces() {
-        pieces = [makePiece(), makePiece(), makePiece()];
+        pieces = generatePieceSet();
         selected = -1;
         renderPieces();
         setStatus("Тап = повернути • drag = поставити");
@@ -762,6 +837,23 @@
           box.appendChild(card);
         });
       }
+
+      function previewPotentialClear(piece, ox, oy) {
+        if (!canPlace(piece, ox, oy)) return;
+        const temp = board.map((r) => [...r]);
+        piece.shape.forEach(
+          ([dx, dy], i) => (temp[oy + dy][ox + dx] = piece.colors[i]),
+        );
+        const groups = findGroups(temp);
+        groups.forEach((g) =>
+          g.cells.forEach(([x, y]) => {
+            const c = boardEl.querySelector(
+              `.cell[data-x="${x}"][data-y="${y}"]`,
+            );
+            if (c) c.classList.add("preview-clear");
+          }),
+        );
+      }
       function canPlace(p, ox, oy) {
         return p.shape.every(([dx, dy]) => {
           const x = ox + dx,
@@ -771,14 +863,15 @@
       }
       function boardCellFromPoint(cx, cy) {
         const r = boardEl.getBoundingClientRect();
-        const px = cx + DRAG_LIFT_X;
-        const py = cy - DRAG_LIFT_Y;
-        if (px < r.left || px > r.right || py < r.top || py > r.bottom)
+        if (cx < r.left || cx > r.right || cy < r.top || cy > r.bottom)
           return null;
-        const cellW = r.width / SIZE,
-          cellH = r.height / SIZE;
-        let x = Math.round((px - r.left - cellW / 2) / cellW);
-        let y = Math.round((py - r.top - cellH / 2) / cellH);
+
+        const cellW = r.width / SIZE;
+        const cellH = r.height / SIZE;
+
+        let x = Math.round((cx - r.left - cellW / 2) / cellW);
+        let y = Math.round((cy - r.top - cellH / 2) / cellH);
+
         x = Math.max(0, Math.min(SIZE - 1, x));
         y = Math.max(0, Math.min(SIZE - 1, y));
         return { x, y };
@@ -838,6 +931,7 @@
           if (c) c.classList.add(ok ? "preview-ok" : "preview-bad");
         });
         currentDrop = { x: ox, y: oy, ok };
+        if (ok) previewPotentialClear(p, ox, oy);
         if (ok) {
           const temp = board.map((r) => [...r]);
           p.shape.forEach(
@@ -854,14 +948,21 @@
         }
       }
       function beginPiecePointer(i, e) {
+        if (resolving || state !== "idle" || gameEnded) return;
         e.preventDefault();
         pressStart = { x: e.clientX, y: e.clientY, id: e.pointerId };
         pressPiece = i;
         dragPointerId = e.pointerId;
+
+        const card = e.currentTarget.getBoundingClientRect();
+        // grab offset relative to visual piece card center
+        grabOffsetX = e.clientX - (card.left + card.width / 2);
+        grabOffsetY = e.clientY - (card.top + card.height / 2);
       }
       function startDragFromPress(cx, cy) {
         if (pressPiece < 0) return;
         dragging = true;
+        state = "dragging";
         dragPieceIndex = pressPiece;
         selected = dragPieceIndex;
         renderPieces();
@@ -871,25 +972,37 @@
       }
       function updateDrag(cx, cy) {
         if (!dragging) return;
-        ghost.style.left = cx + DRAG_LIFT_X + "px";
-        ghost.style.top = cy - DRAG_LIFT_Y + "px";
-        const pos = boardCellFromPoint(cx, cy);
+
+        const visualX = cx - grabOffsetX;
+        const visualY = cy - grabOffsetY - 78;
+
+        ghost.style.left = visualX + "px";
+        ghost.style.top = visualY + "px";
+
+        const pos = boardCellFromPoint(visualX, visualY);
         if (!pos) {
           clearPreview();
           return;
         }
+
         previewPlacement(pieces[dragPieceIndex], pos.x, pos.y);
+        previewPotentialClear(pieces[dragPieceIndex], pos.x, pos.y);
       }
       function endDrag() {
         if (!dragging) return;
-        const idx = dragPieceIndex,
-          drop = currentDrop ? { ...currentDrop } : null;
+
+        const idx = dragPieceIndex;
+        const drop = currentDrop ? { ...currentDrop } : null;
+
         dragging = false;
         dragPieceIndex = -1;
         ghost.classList.remove("show");
         clearPreview();
-        if (drop && drop.ok) placePiece(idx, drop.x, drop.y);
-        else {
+        state = "idle";
+
+        if (drop && drop.ok) {
+          placePiece(idx, drop.x, drop.y);
+        } else {
           setStatus("Не влазить — спробуй інше місце");
           haptic(10);
         }
@@ -900,7 +1013,7 @@
           if (!pressStart || e.pointerId !== pressStart.id) return;
           const dx = e.clientX - pressStart.x,
             dy = e.clientY - pressStart.y;
-          if (!dragging && Math.hypot(dx, dy) > 9)
+          if (!dragging && Math.hypot(dx, dy) > 14)
             startDragFromPress(e.clientX, e.clientY);
           else if (dragging) updateDrag(e.clientX, e.clientY);
         },
@@ -935,8 +1048,16 @@
       });
       async function placePiece(i, ox, oy) {
         const p = pieces[i];
-        if (!p || p.used || !canPlace(p, ox, oy) || resolving) return;
+        if (
+          !p ||
+          p.used ||
+          !canPlace(p, ox, oy) ||
+          resolving ||
+          state !== "idle"
+        )
+          return;
 
+        state = "placing";
         resolving = true;
         lastPlacedCells = [];
 
@@ -953,29 +1074,29 @@
         score += p.shape.length * 2;
         haptic(18);
 
-        // First show the placed piece.
         renderBoard();
         renderPieces();
         $("score").textContent = score;
         setStatus("PLACED");
 
         await new Promise((r) => setTimeout(r, 180));
+        state = "clearing";
+        const didClear = await resolveClears();
 
-        // Fully finish all clears BEFORE considering game over.
-        await resolveClears();
+        if (!didClear) comboStreak = 0;
 
+        state = "scoring";
         resolving = false;
 
-        // Refill if all 3 were used. Refill itself will check game over
-        // against the UPDATED board after the clear.
         if (pieces.every((q) => q.used)) {
-          setTimeout(() => {
-            refillPieces();
-          }, 220);
-        } else {
+          state = "refill";
+          pieces = generatePieceSet();
+          selected = -1;
           renderPieces();
-          checkGameOver();
         }
+
+        state = "idle";
+        checkGameOver();
       }
       function rotatePiece(i) {
         const p = pieces[i];
@@ -987,14 +1108,23 @@
         setStatus("Повернуто на 90°");
         haptic(8);
       }
+
+      function groupScore(n) {
+        if (n <= 5) return 50;
+        if (n === 6) return 75;
+        if (n === 7) return 115;
+        if (n === 8) return 165;
+        if (n === 9) return 230;
+        if (n === 10) return 310;
+        if (n === 11) return 400;
+        return 500 + (n - 12) * 110;
+      }
       async function resolveClears() {
         const groups = findGroups();
-
         if (!groups.length) {
-          comboStreak = 0;
           render();
           setStatus("Плануй наступний хід");
-          return;
+          return false;
         }
 
         comboStreak++;
@@ -1004,119 +1134,82 @@
           g.cells.forEach(([x, y]) => unique.set(`${x},${y}`, [x, y])),
         );
         const cells = [...unique.values()];
-        const count = cells.length;
-        const colorCount = new Set(groups.map((g) => g.color)).size;
-
         const clearedSet = new Set(cells.map(([x, y]) => `${x},${y}`));
+
+        const colorCount = new Set(groups.map((g) => g.color)).size;
         const perfectPiece =
           lastPlacedCells.length > 0 &&
           lastPlacedCells.every(([x, y]) => clearedSet.has(`${x},${y}`));
 
-        // wave origin = center of cleared cells
-        const cx = cells.reduce((a, [x]) => a + x, 0) / cells.length;
-        const cy = cells.reduce((a, [, y]) => a + y, 0) / cells.length;
-        const ordered = [...cells].sort((a, b) => {
-          const da = Math.abs(a[0] - cx) + Math.abs(a[1] - cy);
-          const db = Math.abs(b[0] - cx) + Math.abs(b[1] - cy);
-          return da - db;
-        });
-
-        ordered.forEach(([x, y], idx) => {
+        cells.forEach(([x, y]) => {
           const cube = boardEl.querySelector(
             `.cell[data-x="${x}"][data-y="${y}"] .cube`,
           );
-          if (cube) {
-            cube.classList.add("clearReady");
-            cube.dataset.wave = String(idx % 6);
-          }
+          if (cube) cube.classList.add("clearReady");
         });
 
-        const base = sizeBaseScore(count);
-        const multi = colorCount >= 3 ? 3 : colorCount === 2 ? 2 : 1;
-        const comboMult = 1 + Math.max(0, comboStreak - 1) * 0.25;
+        let base = 0;
+        groups.forEach((g) => (base += groupScore(g.cells.length)));
+
+        const colorMult = colorCount >= 3 ? 3 : colorCount === 2 ? 2 : 1;
+        const comboMult = 1 + (comboStreak - 1) * 0.25;
         const perfectBonus = perfectPiece ? 100 : 0;
+        const gained = Math.round(base * colorMult * comboMult) + perfectBonus;
 
-        let clearScore = Math.round(base * multi * comboMult) + perfectBonus;
+        let label =
+          colorCount >= 3
+            ? "TRIPLE CLEAR"
+            : colorCount === 2
+              ? "DOUBLE CLEAR"
+              : cells.length >= 9
+                ? "AWESOME!"
+                : cells.length >= 7
+                  ? "GREAT!"
+                  : cells.length === 6
+                    ? "NICE!"
+                    : "CLEAR";
+        setStatus(label);
 
-        let headline = sizeLabel(count);
-        if (colorCount === 2) headline = "DOUBLE CLEAR";
-        if (colorCount >= 3) headline = "TRIPLE CLEAR";
+        await new Promise((r) => setTimeout(r, 220));
 
-        setStatus(headline);
-
-        await new Promise((r) => setTimeout(r, 210));
-
-        ordered.forEach(([x, y], idx) => {
+        cells.forEach(([x, y]) => {
           const cube = boardEl.querySelector(
             `.cell[data-x="${x}"][data-y="${y}"] .cube`,
           );
           if (cube) {
             cube.classList.remove("clearReady");
-            cube.classList.add("pop", `wave${Math.min(5, idx % 6)}`);
+            cube.classList.add("pop");
           }
         });
 
-        // particles per color group
-        groups.forEach((g) => spawnParticles(g.cells, g.color));
-
-        if (count >= 8 || colorCount >= 2) boardShake();
-
-        haptic(
-          count >= 12
-            ? [25, 25, 35, 25, 55]
-            : colorCount >= 2
-              ? [25, 35, 25]
-              : 28,
-        );
-
-        const combo = $("combo");
-        combo.textContent = headline;
-        combo.className = "combo show";
-
-        showScorePopup(`+${clearScore}`);
-
-        if (comboStreak >= 2) showBadge(`COMBO x${comboStreak}`);
-        if (perfectPiece)
-          setTimeout(() => showBadge("PERFECT PIECE +100"), 250);
-
-        await new Promise((r) => setTimeout(r, 360));
+        haptic(colorCount >= 2 ? [25, 35, 25] : 28);
+        await new Promise((r) => setTimeout(r, 340));
 
         cells.forEach(([x, y]) => (board[y][x] = null));
-        score += clearScore;
+        score += gained;
 
-        const occupied = countOccupied();
-        let boardBonus = 0;
+        const occ = board.flat().filter(Boolean).length;
+        if (occ === 0) score += 500;
+        else if (occ <= 5) score += 150;
 
-        if (occupied === 0) {
-          boardBonus = 500;
-          score += boardBonus;
-          setTimeout(() => showBadge("PERFECT BOARD +500"), 380);
-        } else if (occupied <= 5) {
-          boardBonus = 150;
-          score += boardBonus;
-          setTimeout(() => showBadge("CLEAN +150"), 380);
-        }
-
-        const oldBest = best;
         if (score > best) {
           best = score;
           localStorage.setItem("colorShapesBest", best);
         }
-
         render();
-        $("score").textContent = score;
-        $("best").textContent = best;
 
-        if (score > oldBest) {
-          setStatus("NEW BEST!");
-          setTimeout(() => showBadge("NEW BEST"), 520);
-        } else {
-          const parts = [headline];
-          if (comboStreak >= 2) parts.push(`COMBO x${comboStreak}`);
-          setStatus(parts.join(" • "));
+        if (typeof showScorePopup === "function") showScorePopup(`+${gained}`);
+        if (typeof showBadge === "function") {
+          if (comboStreak >= 2) showBadge(`COMBO x${comboStreak}`);
+          if (perfectPiece)
+            setTimeout(() => showBadge("PERFECT PIECE +100"), 180);
+          if (occ === 0) setTimeout(() => showBadge("PERFECT BOARD +500"), 360);
+          else if (occ <= 5) setTimeout(() => showBadge("CLEAN +150"), 360);
         }
 
-        setTimeout(() => (combo.className = "combo"), 850);
+        $("score").textContent = score;
+        $("best").textContent = best;
+        return true;
       }
       function anyPlacement(p) {
         for (let y = 0; y < SIZE; y++)
@@ -1124,24 +1217,16 @@
         return false;
       }
       function checkGameOver() {
-        // Important: never judge the board before a pending clear has finished.
-        if (gameEnded || resolving) return;
-
+        if (gameEnded || resolving || state !== "idle") return;
         const available = pieces.filter((p) => !p.used);
-
-        // No pieces left means we're about to refill, not lose.
         if (!available.length) return;
-
-        // If even one available piece fits somewhere, game continues.
         if (available.some(anyPlacement)) return;
 
         gameEnded = true;
-
         if (score > best) {
           best = score;
           localStorage.setItem("colorShapesBest", best);
         }
-
         $("best").textContent = best;
         $("goScore").textContent = score;
         $("goText").textContent = score >= best ? "NEW BEST" : "";
@@ -1158,6 +1243,7 @@
         selected = -1;
         gameEnded = false;
         resolving = false;
+        state = "idle";
         dragging = false;
         comboStreak = 0;
         lastPlacedCells = [];
@@ -1169,6 +1255,12 @@
       }
       $("restart").onclick = newGame;
       $("playAgain").onclick = newGame;
+      $("debugToggle").onclick = () => {
+        const d = $("debug");
+        d.style.display = d.style.display === "none" ? "block" : "none";
+        const p = difficultyProfile();
+        d.textContent = `tier=${p.tier} colors=${p.colors} maxSize=${p.maxSize} combo=${comboStreak} state=${state}`;
+      };
       newGame();
     </script>
   </body>
