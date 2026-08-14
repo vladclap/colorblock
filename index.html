@@ -260,7 +260,7 @@
         pointer-events: none;
         display: none;
         filter: drop-shadow(0 10px 18px rgba(0, 0, 0, 0.4));
-        transform: translate(-50%, -65%) scale(1.05);
+        transform: translate(-50%, -50%) scale(1.08);
       }
       .dragGhost.show {
         display: block;
@@ -771,18 +771,17 @@
       }
       function boardCellFromPoint(cx, cy) {
         const r = boardEl.getBoundingClientRect();
-        if (cx < r.left || cx > r.right || cy < r.top || cy > r.bottom)
+        const px = cx + DRAG_LIFT_X;
+        const py = cy - DRAG_LIFT_Y;
+        if (px < r.left || px > r.right || py < r.top || py > r.bottom)
           return null;
-        return {
-          x: Math.min(
-            7,
-            Math.max(0, Math.floor((cx - r.left) / (r.width / SIZE))),
-          ),
-          y: Math.min(
-            7,
-            Math.max(0, Math.floor((cy - r.top) / (r.height / SIZE))),
-          ),
-        };
+        const cellW = r.width / SIZE,
+          cellH = r.height / SIZE;
+        let x = Math.round((px - r.left - cellW / 2) / cellW);
+        let y = Math.round((py - r.top - cellH / 2) / cellH);
+        x = Math.max(0, Math.min(SIZE - 1, x));
+        y = Math.max(0, Math.min(SIZE - 1, y));
+        return { x, y };
       }
       function clearPreview() {
         boardEl
@@ -872,8 +871,8 @@
       }
       function updateDrag(cx, cy) {
         if (!dragging) return;
-        ghost.style.left = cx + "px";
-        ghost.style.top = cy + "px";
+        ghost.style.left = cx + DRAG_LIFT_X + "px";
+        ghost.style.top = cy - DRAG_LIFT_Y + "px";
         const pos = boardCellFromPoint(cx, cy);
         if (!pos) {
           clearPreview();
