@@ -508,6 +508,33 @@
             monospace;
         "
       ></div>
+      <button
+        id="assistDebugToggle"
+        style="
+          width: 100%;
+          margin-top: 6px;
+          border: 0;
+          background: transparent;
+          color: #66789b;
+          font-size: 9px;
+        "
+      >
+        ASSIST DEBUG
+      </button>
+      <div
+        id="assistDebug"
+        style="
+          display: none;
+          margin-top: 5px;
+          padding: 7px;
+          border-radius: 10px;
+          background: #0b1423;
+          color: #91a0bf;
+          font:
+            10px ui-monospace,
+            monospace;
+        "
+      ></div>
       <div class="hint">
         тап = +90° • drag = поставити • 5+ = clear • chain clears = COMBO
       </div>
@@ -601,11 +628,29 @@
         pieces = [],
         selected = -1,
         gameEnded = false,
+        resolving = false,
+        state = "idle",
         dragging = false,
         dragPointerId = null,
         dragPieceIndex = -1,
         currentDrop = null,
-        spawnedCells = new Set();
+        pressStart = null,
+        pressPiece = -1,
+        grabOffsetX = 0,
+        grabOffsetY = 0,
+        spawnedCells = new Set(),
+        comboStreak = 0,
+        lastPlacedCells = [],
+        noClearMoves = 0,
+        assistCooldown = 0,
+        lastDanger = 0,
+        lastAssistMode = "RANDOM",
+        lastRescueScore = 0,
+        lastMonoChance = 0,
+        lastMonoColor = "-",
+        lastTripleChance = 0,
+        lastPieceColorMode = "-",
+        lastSetSource = "-";
       const $ = (id) => document.getElementById(id),
         boardEl = $("board"),
         ghost = $("dragGhost"),
@@ -627,6 +672,26 @@
       }
       function rotateShape(s) {
         return normalizeShape(s.map(([x, y]) => [-y, x]));
+      }
+      function mirrorShape(s) {
+        // Horizontal mirror, then normalize back to top-left.
+        return normalizeShape(s.map(([x, y]) => [-x, y]));
+      }
+      function randomizeOrientation(shape) {
+        let s = shape.map((p) => [...p]);
+
+        // 50% chance to use mirrored variant.
+        if (Math.random() < 0.5) {
+          s = mirrorShape(s);
+        }
+
+        // Random starting rotation: 0 / 90 / 180 / 270.
+        const turns = Math.floor(Math.random() * 4);
+        for (let i = 0; i < turns; i++) {
+          s = rotateShape(s);
+        }
+
+        return normalizeShape(s);
       }
 
       function countOccupied() {
@@ -720,26 +785,223 @@
           return true;
         });
       }
+
+      function colorStatsOnBoard() {
+        const stats = {};
+        COLORS.forEach((c) => (stats[c] = { count: 0, maxGroup: 0 }));
+        const seen = Array.from({ length: SIZE }, () =>
+          Array(SIZE).fill(false),
+        );
+
+        for (let y = 0; y < SIZE; y++)
+          for (let x = 0; x < SIZE; x++) {
+            const c = board[y][x];
+            if (!c) continue;
+            stats[c].count++;
+
+            if (seen[y][x]) continue;
+            const q = [[x, y]];
+            seen[y][x] = true;
+            let n = 0;
+
+            while (q.length) {
+              const [cx, cy] = q.pop();
+              n++;
+              [
+                [cx + 1, cy],
+                [cx - 1, cy],
+                [cx, cy + 1],
+                [cx, cy - 1],
+              ].forEach(([nx, ny]) => {
+                if (
+                  nx >= 0 &&
+                  nx < SIZE &&
+                  ny >= 0 &&
+                  ny < SIZE &&
+                  !seen[ny][nx] &&
+                  board[ny][nx] === c
+                ) {
+                  seen[ny][nx] = true;
+                  q.push([nx, ny]);
+                }
+              });
+            }
+
+            stats[c].maxGroup = Math.max(stats[c].maxGroup, n);
+          }
+
+        return stats;
+      }
+
+      function monoChance() {
+        // IMPORTANT: do not call dangerScore() from here.
+        // Piece generation itself can be used by danger evaluation, so that would recurse.
+        const occ = occupiedCount() / (SIZE * SIZE);
+        let d = lastDanger;
+
+        // If danger hasn't been evaluated yet, use only a cheap occupancy estimate.
+        if (!Number.isFinite(d) || d <= 0) {
+          d = Math.round(occ * 70 + Math.min(20, noClearMoves * 4));
+        }
+
+        let chance = 0.06;
+        if (d >= 45) chance = 0.09;
+        if (d >= 70) chance = 0.14;
+        if (assistCooldown > 0) chance = Math.min(chance, 0.07);
+
+        lastMonoChance = chance;
+        return chance;
+      }
+      function chooseMonoColor() {
+        const stats = colorStatsOnBoard();
+        const profile =
+          typeof difficultyProfile === "function"
+            ? difficultyProfile()
+            : { colors: COLORS.length };
+        const palette = COLORS.slice(0, profile.colors || COLORS.length);
+
+        const weighted = [];
+
+        for (const c of palette) {
+          const s = stats[c] || { count: 0, maxGroup: 0 };
+          let w = 1;
+
+          // Existing lonely / awkward colors are useful.
+          if (s.count === 1) w += 3;
+          if (s.count === 2) w += 4;
+
+          // Near-clears get a strong preference.
+          if (s.maxGroup === 3) w += 5;
+          if (s.maxGroup === 4) w += 8;
+
+          // Color already present, but not dominant.
+          if (s.count >= 3 && s.count <= 6) w += 2;
+
+          for (let i = 0; i < Math.max(1, Math.round(w)); i++) weighted.push(c);
+        }
+
+        const color = weighted.length
+          ? weighted[Math.floor(Math.random() * weighted.length)]
+          : palette[Math.floor(Math.random() * palette.length)];
+        lastMonoColor = color;
+        return color;
+      }
+
+      function makeMonoPiece() {
+        const profile =
+          typeof difficultyProfile === "function"
+            ? difficultyProfile()
+            : { maxSize: 4 };
+        const maxSize = profile.maxSize || 4;
+
+        // Normal shapes only. Mono square/line can appear naturally but aren't favored.
+        const pool = SHAPES.filter((s) => s.length >= 2 && s.length <= maxSize);
+        const shape = randomizeOrientation(
+          normalizeShape(rnd(pool).map((p) => [...p])),
+        );
+        const color = chooseMonoColor();
+        const colors = shape.map(() => color);
+
+        return { shape, colors, used: false, mono: true };
+      }
+
+      function tripleChanceForCurrentState() {
+        // Triple-color pieces are a "near record" tension mechanic,
+        // not a generic late-game difficulty spike.
+
+        const d =
+          typeof dangerScore === "function" ? dangerScore() : lastDanger;
+        const occ = occupiedCount() / (SIZE * SIZE);
+
+        // Never add extra difficulty when the player is already in danger
+        // or while adaptive assist is helping.
+        if (
+          d >= 58 ||
+          occ >= 0.76 ||
+          lastAssistMode === "BIAS" ||
+          lastAssistMode === "OPPORTUNITY" ||
+          lastAssistMode === "COOLDOWN" ||
+          lastAssistMode === "FALLBACK"
+        ) {
+          lastTripleChance = 0;
+          return 0;
+        }
+
+        // No meaningful record yet -> no triple pieces.
+        if (!best || best < 500) {
+          lastTripleChance = 0;
+          return 0;
+        }
+
+        const ratio = score / best;
+        let chance = 0;
+
+        // Start gently when approaching the record.
+        if (ratio >= 0.8 && ratio < 0.9) chance = 0.025;
+        else if (ratio >= 0.9 && ratio < 0.97) chance = 0.05;
+        else if (ratio >= 0.97 && ratio <= 1.05) chance = 0.08;
+
+        // Cap it so triples still feel rare.
+        chance = Math.min(chance, 0.08);
+
+        lastTripleChance = chance;
+        return chance;
+      }
+
+      function choosePieceColorMode() {
+        const tripleChance = tripleChanceForCurrentState();
+
+        if (tripleChance > 0 && Math.random() < tripleChance) {
+          lastPieceColorMode = "TRIPLE";
+          return 3;
+        }
+
+        lastPieceColorMode = "DOUBLE";
+        return 2;
+      }
+
       function makeControlledPiece() {
+        if (Math.random() < monoChance()) {
+          lastPieceColorMode = "MONO";
+          return makeMonoPiece();
+        }
+
         const profile = difficultyProfile();
         const palette = COLORS.slice(0, profile.colors);
         const pool = shapePoolFor(profile);
-        let shape = normalizeShape(rnd(pool).map((p) => [...p]));
+
+        let shape = randomizeOrientation(
+          normalizeShape(rnd(pool).map((p) => [...p])),
+        );
+
         if (Math.random() < profile.hardChance && profile.maxSize >= 4) {
           const hard = SHAPES.filter((s) => s.length === 4);
-          if (hard.length) shape = normalizeShape(rnd(hard).map((p) => [...p]));
+          if (hard.length) {
+            shape = randomizeOrientation(
+              normalizeShape(rnd(hard).map((p) => [...p])),
+            );
+          }
         }
+
+        const mode = choosePieceColorMode();
         const local = [rnd(palette)];
-        local.push(rnd(palette.filter((c) => c !== local[0])));
-        if (Math.random() < 0.1 && palette.length >= 5) {
-          local.push(rnd(palette.filter((c) => !local.includes(c))));
+
+        const secondPool = palette.filter((c) => c !== local[0]);
+        if (secondPool.length) local.push(rnd(secondPool));
+
+        if (mode === 3) {
+          const thirdPool = palette.filter((c) => !local.includes(c));
+          if (thirdPool.length) local.push(rnd(thirdPool));
         }
+
         const colors = shape.map((_, i) => local[i % local.length]);
+
         for (let i = colors.length - 1; i > 0; i--) {
           const j = Math.floor(Math.random() * (i + 1));
           [colors[i], colors[j]] = [colors[j], colors[i]];
         }
-        return { shape, colors, used: false };
+
+        return { shape, colors, used: false, mono: false };
       }
       function generatePieceSet() {
         let set = [
@@ -761,14 +1023,280 @@
         return set;
       }
 
+      function rotateShapeN(shape, n) {
+        let s = shape.map((p) => [...p]);
+        for (let i = 0; i < n; i++) s = rotateShape(s);
+        return s;
+      }
+      function occupiedCount() {
+        return board.flat().filter(Boolean).length;
+      }
+      function largestFreeRegion() {
+        const seen = Array.from({ length: SIZE }, () =>
+          Array(SIZE).fill(false),
+        );
+        let best = 0;
+        for (let y = 0; y < SIZE; y++)
+          for (let x = 0; x < SIZE; x++) {
+            if (board[y][x] || seen[y][x]) continue;
+            const q = [[x, y]];
+            seen[y][x] = true;
+            let n = 0;
+            while (q.length) {
+              const [cx, cy] = q.pop();
+              n++;
+              [
+                [cx + 1, cy],
+                [cx - 1, cy],
+                [cx, cy + 1],
+                [cx, cy - 1],
+              ].forEach(([nx, ny]) => {
+                if (
+                  nx >= 0 &&
+                  nx < SIZE &&
+                  ny >= 0 &&
+                  ny < SIZE &&
+                  !board[ny][nx] &&
+                  !seen[ny][nx]
+                ) {
+                  seen[ny][nx] = true;
+                  q.push([nx, ny]);
+                }
+              });
+            }
+            best = Math.max(best, n);
+          }
+        return best;
+      }
+      function countValidPlacements(piece) {
+        let n = 0;
+        for (let rot = 0; rot < 4; rot++) {
+          const shape = rotateShapeN(piece.shape, rot);
+          const test = { ...piece, shape };
+          for (let y = 0; y < SIZE; y++)
+            for (let x = 0; x < SIZE; x++) {
+              if (canPlace(test, x, y)) n++;
+            }
+        }
+        return n;
+      }
+      function totalMobilityForSet(set) {
+        return set.reduce((a, p) => a + countValidPlacements(p), 0);
+      }
+      function dangerScore() {
+        const occ = occupiedCount();
+        const occupancy = occ / (SIZE * SIZE);
+        const freeRegion = largestFreeRegion() / (SIZE * SIZE);
+
+        // Probe a handful of fresh pieces to estimate how constrained the board is.
+        const probes = [makePieceRaw(), makePieceRaw(), makePieceRaw()];
+        const mobility = Math.min(1, totalMobilityForSet(probes) / 45);
+
+        let score = 0;
+        score += occupancy * 55;
+        score += (1 - freeRegion) * 20;
+        score += (1 - mobility) * 15;
+        score += Math.min(10, noClearMoves * 2.5);
+
+        return Math.max(0, Math.min(100, Math.round(score)));
+      }
+      function simulatePlacement(piece, ox, oy) {
+        const temp = board.map((r) => [...r]);
+        piece.shape.forEach(
+          ([dx, dy], i) => (temp[oy + dy][ox + dx] = piece.colors[i]),
+        );
+
+        const groups = findGroups(temp);
+        let cleared = 0;
+        groups.forEach((g) => (cleared += g.cells.length));
+
+        // Also reward near-clears: connected groups of exactly 4 after placement.
+        const seen = Array.from({ length: SIZE }, () =>
+          Array(SIZE).fill(false),
+        );
+        let near = 0;
+        for (let y = 0; y < SIZE; y++)
+          for (let x = 0; x < SIZE; x++) {
+            const color = temp[y][x];
+            if (!color || seen[y][x]) continue;
+            const q = [[x, y]],
+              group = [];
+            seen[y][x] = true;
+            while (q.length) {
+              const [cx, cy] = q.pop();
+              group.push([cx, cy]);
+              [
+                [cx + 1, cy],
+                [cx - 1, cy],
+                [cx, cy + 1],
+                [cx, cy - 1],
+              ].forEach(([nx, ny]) => {
+                if (
+                  nx >= 0 &&
+                  nx < SIZE &&
+                  ny >= 0 &&
+                  ny < SIZE &&
+                  !seen[ny][nx] &&
+                  temp[ny][nx] === color
+                ) {
+                  seen[ny][nx] = true;
+                  q.push([nx, ny]);
+                }
+              });
+            }
+            if (group.length === 4) near++;
+          }
+
+        return { cleared, near };
+      }
+      function rescueScorePiece(piece) {
+        let best = -Infinity;
+        for (let rot = 0; rot < 4; rot++) {
+          const shape = rotateShapeN(piece.shape, rot);
+          const p = { ...piece, shape };
+          for (let y = 0; y < SIZE; y++)
+            for (let x = 0; x < SIZE; x++) {
+              if (!canPlace(p, x, y)) continue;
+              const sim = simulatePlacement(p, x, y);
+              const mobilityBonus = 1;
+              const score = sim.cleared * 18 + sim.near * 6 + mobilityBonus;
+              best = Math.max(best, score);
+            }
+        }
+        if (best === -Infinity) return -1000;
+        best += Math.min(18, countValidPlacements(piece) * 0.4);
+        if (piece.mono) best += 6;
+        return best;
+      }
+      function rescueScoreSet(set) {
+        const scores = set.map(rescueScorePiece).sort((a, b) => b - a);
+        const mobility = Math.min(30, totalMobilityForSet(set) * 0.25);
+        // Strongly value at least one useful rescue, but keep other pieces playable too.
+        return scores[0] * 1.0 + scores[1] * 0.25 + scores[2] * 0.08 + mobility;
+      }
+      function makePieceRaw() {
+        const profile = difficultyProfile();
+        const palette = COLORS.slice(0, profile.colors);
+        let pool = shapePoolFor(profile);
+        if (!pool.length) pool = SHAPES;
+
+        let shape = randomizeOrientation(
+          normalizeShape(rnd(pool).map((p) => [...p])),
+        );
+
+        if (profile.maxSize >= 4 && Math.random() < profile.hardChance) {
+          const hard = SHAPES.filter((s) => s.length === 4);
+          if (hard.length) {
+            shape = randomizeOrientation(
+              normalizeShape(rnd(hard).map((p) => [...p])),
+            );
+          }
+        }
+
+        const local = [rnd(palette)];
+        const alternatives = palette.filter((c) => c !== local[0]);
+        if (alternatives.length) local.push(rnd(alternatives));
+
+        const colors = shape.map((_, i) => local[i % local.length]);
+
+        for (let i = colors.length - 1; i > 0; i--) {
+          const j = Math.floor(Math.random() * (i + 1));
+          [colors[i], colors[j]] = [colors[j], colors[i]];
+        }
+
+        return { shape, colors, used: false, mono: false };
+      }
+      function generateOpportunitySet() {
+        const danger = dangerScore();
+        lastDanger = danger;
+
+        // Cooldown means truly random-ish generation after a rescue.
+        if (assistCooldown > 0) {
+          assistCooldown--;
+          lastAssistMode = "COOLDOWN";
+          lastRescueScore = 0;
+          return [
+            makeControlledPiece(),
+            makeControlledPiece(),
+            makeControlledPiece(),
+          ];
+        }
+
+        if (danger < 45) {
+          lastAssistMode = "RANDOM";
+          lastRescueScore = 0;
+          return [
+            makeControlledPiece(),
+            makeControlledPiece(),
+            makeControlledPiece(),
+          ];
+        }
+
+        const candidates = [];
+        const tries = danger >= 72 ? 30 : 16;
+        lastAssistMode = danger >= 72 ? "OPPORTUNITY" : "BIAS";
+        lastAssistMode = danger >= 72 ? "OPPORTUNITY" : "BIAS";
+
+        for (let i = 0; i < tries; i++) {
+          const set = [
+            makeControlledPiece(),
+            makeControlledPiece(),
+            makeControlledPiece(),
+          ];
+          // must have at least one valid placement
+          if (!set.some((p) => countValidPlacements(p) > 0)) continue;
+          const rs = rescueScoreSet(set);
+          candidates.push({ set, score: rs });
+        }
+
+        if (!candidates.length) {
+          lastAssistMode = "FALLBACK";
+          lastRescueScore = 0;
+          return [
+            makeControlledPiece(),
+            makeControlledPiece(),
+            makeControlledPiece(),
+          ];
+        }
+
+        candidates.sort((a, b) => b.score - a.score);
+
+        if (danger < 72) {
+          lastAssistMode = "BIAS";
+          const top = Math.max(2, Math.ceil(candidates.length * 0.45));
+          const pick = candidates[Math.floor(Math.random() * top)];
+          lastRescueScore = Math.round(pick.score);
+          return pick.set;
+        }
+
+        // High danger: choose randomly from upper 10–30%, not the absolute best.
+        lastAssistMode = "OPPORTUNITY";
+        const from = Math.floor(candidates.length * 0.1);
+        const to = Math.max(from + 1, Math.ceil(candidates.length * 0.3));
+        const idx = from + Math.floor(Math.random() * Math.max(1, to - from));
+        const pick = candidates[Math.min(idx, candidates.length - 1)];
+        lastRescueScore = Math.round(pick.score);
+        return pick.set;
+      }
+
+      function makePiece() {
+        return makeControlledPiece();
+      }
+      function makePieceLegacy() {
+        return makeControlledPiece();
+      }
       function makePiece() {
         return makeControlledPiece();
       }
       function refillPieces() {
-        pieces = generatePieceSet();
+        pieces = generateOpportunitySet();
+        lastSetSource = "OPPORTUNITY_GENERATOR";
         selected = -1;
         renderPieces();
         setStatus("Тап = повернути • drag = поставити");
+
+        // Game over is checked only after the new set exists
+        // and only against the already-updated board.
         checkGameOver();
       }
       function render() {
@@ -1090,13 +1618,13 @@
 
         if (pieces.every((q) => q.used)) {
           state = "refill";
-          pieces = generatePieceSet();
-          selected = -1;
-          renderPieces();
+          refillPieces();
         }
 
         state = "idle";
-        checkGameOver();
+        if (!pieces.every((q) => q.used)) {
+          checkGameOver();
+        }
       }
       function rotatePiece(i) {
         const p = pieces[i];
@@ -1128,6 +1656,7 @@
         }
 
         comboStreak++;
+        noClearMoves = 0;
 
         const unique = new Map();
         groups.forEach((g) =>
@@ -1209,6 +1738,8 @@
 
         $("score").textContent = score;
         $("best").textContent = best;
+        if (lastDanger >= 70 && cells.length >= 5)
+          assistCooldown = 2 + Math.floor(Math.random() * 2);
         return true;
       }
       function anyPlacement(p) {
@@ -1244,15 +1775,31 @@
         gameEnded = false;
         resolving = false;
         state = "idle";
+        resolving = false;
+        state = "idle";
         dragging = false;
         comboStreak = 0;
         lastPlacedCells = [];
+        noClearMoves = 0;
+        assistCooldown = 0;
+        lastDanger = 0;
+        lastAssistMode = "RANDOM";
+        lastRescueScore = 0;
+        lastMonoChance = 0;
+        lastMonoColor = "-";
+        lastTripleChance = 0;
+        lastPieceColorMode = "-";
         clearPreview();
         $("gameOver").classList.remove("show");
         $("score").textContent = 0;
         renderBoard();
         refillPieces();
       }
+      $("assistDebugToggle").onclick = () => {
+        const d = $("assistDebug");
+        d.style.display = d.style.display === "none" ? "block" : "none";
+        d.textContent = `danger=${lastDanger}/100 mode=${lastAssistMode} cooldown=${assistCooldown} noClear=${noClearMoves} rescueScore=${lastRescueScore} monoChance=${Math.round(lastMonoChance * 100)}% monoColor=${lastMonoColor} tripleChance=${Math.round(lastTripleChance * 100)}% pieceMode=${lastPieceColorMode} recordRatio=${best ? Math.round((score / best) * 100) : 0}% setSource=${lastSetSource}`;
+      };
       $("restart").onclick = newGame;
       $("playAgain").onclick = newGame;
       $("debugToggle").onclick = () => {
@@ -1261,6 +1808,10 @@
         const p = difficultyProfile();
         d.textContent = `tier=${p.tier} colors=${p.colors} maxSize=${p.maxSize} combo=${comboStreak} state=${state}`;
       };
+      window.addEventListener("error", (e) => {
+        const s = document.getElementById("status");
+        if (s) s.textContent = "ERROR: " + (e.message || "unknown");
+      });
       newGame();
     </script>
   </body>
