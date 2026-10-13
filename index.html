@@ -23,12 +23,20 @@
       .updated { color: #aab8d8; margin: 0; }
       .card { margin-top: 32px; padding: 28px; border: 1px solid #3d5790; border-radius: 20px; background: rgba(13, 28, 58, .8); box-shadow: 0 20px 55px rgba(0,0,0,.25); }
       a { color: #91baff; }
+      nav { display: flex; flex-wrap: wrap; gap: 12px; margin: 20px 0 28px; }
+      nav a { padding: 8px 16px; border: 1px solid #3d5790; border-radius: 12px; text-decoration: none; }
+      nav a[aria-current="page"] { background: #293e68; color: #fff; }
+      a:focus-visible { outline: 3px solid #ffd152; outline-offset: 4px; }
       footer { color: #9ba9c7; font-size: .9rem; margin-top: 42px; }
     </style>
   </head>
   <body>
     <main>
       <div class="brand">Chromigo</div>
+      <nav aria-label="Site navigation">
+        <a href="/" aria-current="page">Privacy Policy</a>
+        <a href="/support/">Support</a>
+      </nav>
       <h1>Privacy Policy</h1>
       <p class="updated">Last updated: October 9, 2026</p>
 
